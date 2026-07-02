@@ -38,6 +38,31 @@
   .premium-border {
     border-color: rgba(26, 26, 26, 0.08);
   }
+
+  .animate-marquee {
+    animation: marquee 25s linear infinite;
+  }
+  
+  .animate-marquee:hover {
+    animation-play-state: paused;
+  }
+
+  .scale-101 {
+    transform: scale(1.01);
+  }
+
+  .scale-102 {
+    transform: scale(1.02);
+  }
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(10%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
 }
 
 /* Custom classes for typography and clean page loading skeleton */
