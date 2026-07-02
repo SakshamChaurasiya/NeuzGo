@@ -55,7 +55,7 @@ const Signup = () => {
     setSubmitting(false);
 
     if (result.success) {
-      toast.success("Account created! Welcome to NeuFeed.");
+      toast.success("Account created! Welcome to NeuzGo.");
       navigate("/");
     } else {
       toast.error(result.message || "Registration failed. Please try again.");
@@ -67,9 +67,9 @@ const Signup = () => {
       <div className="w-full max-w-md space-y-10">
         {/* Header */}
         <div className="text-center space-y-2">
-          <span className="font-serif text-3xl font-black tracking-tight text-charcoal-900 block">NEUFEED</span>
+          <span className="font-serif text-3xl font-black tracking-tight text-charcoal-900 block">NEUZGO</span>
           <h1 className="font-serif text-2xl font-bold text-charcoal-900">Create Your Account</h1>
-          <p className="text-sm text-charcoal-500">Join NeuFeed to save articles and personalize your reading experience.</p>
+          <p className="text-sm text-charcoal-500">Join NeuzGo to save articles and personalize your reading experience.</p>
         </div>
 
         {/* Signup Form */}

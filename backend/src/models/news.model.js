@@ -71,7 +71,7 @@ const newsSchema = new mongoose.Schema(
 
     provider: {
       type: String,
-      default: "mediastack",
+      default: "gnews",
     },
   },
   {
@@ -79,4 +79,13 @@ const newsSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("News", newsSchema);
+// ─── Compound index ────────────────────────────────────────────────────────────
+// Covers every countDocuments + find query in the controller:
+//   filter: { category, country, language }  sort: { publishedAt: -1 }
+// Makes the DB-first check an index-only operation on any collection size.
+newsSchema.index(
+  { category: 1, country: 1, language: 1, publishedAt: -1 },
+  { name: "category_country_language_publishedAt" }
+);
+
+module.exports = mongoose.model("News", newsSchema);

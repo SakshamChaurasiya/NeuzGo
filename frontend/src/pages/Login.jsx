@@ -42,7 +42,7 @@ const Login = () => {
       <div className="w-full max-w-md space-y-10">
         {/* Header */}
         <div className="text-center space-y-2">
-          <span className="font-serif text-3xl font-black tracking-tight text-charcoal-900 block">NEUFEED</span>
+          <span className="font-serif text-3xl font-black tracking-tight text-charcoal-900 block">NEUZGO</span>
           <h1 className="font-serif text-2xl font-bold text-charcoal-900">Welcome Back</h1>
           <p className="text-sm text-charcoal-500">Sign in to access your personalized feed and bookmarks.</p>
         </div>

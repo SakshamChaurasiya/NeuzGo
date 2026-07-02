@@ -3,8 +3,8 @@ const { syncNews } = require("../jobs/newsSync.job");
 
 
 const CRON_CONFIG = {
-  
-  CRON_SCHEDULE: "*/3 * * * *",
+
+  CRON_SCHEDULE: "*/20 * * * *",
 
   CRON_FETCH_LIMIT: 10,
 };

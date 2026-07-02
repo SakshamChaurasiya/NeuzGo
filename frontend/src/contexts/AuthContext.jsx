@@ -8,7 +8,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = useCallback(async () => {
-    const token = localStorage.getItem("neufeed_token");
+    const token = localStorage.getItem("neuzgo_token");
     if (!token) {
       setUser(null);
       setLoading(false);
@@ -20,12 +20,12 @@ export const AuthProvider = ({ children }) => {
       if (response.data && response.data.success) {
         setUser(response.data.user);
       } else {
-        localStorage.removeItem("neufeed_token");
+        localStorage.removeItem("neuzgo_token");
         setUser(null);
       }
     } catch (error) {
       console.error("Failed to fetch user profile:", error);
-      localStorage.removeItem("neufeed_token");
+      localStorage.removeItem("neuzgo_token");
       setUser(null);
     } finally {
       setLoading(false);
@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await apiClient.post("/auth/login", { email, password });
       const { token, user: userData } = response.data;
-      localStorage.setItem("neufeed_token", token);
+      localStorage.setItem("neuzgo_token", token);
       setUser(userData);
       return { success: true };
     } catch (error) {
@@ -59,7 +59,7 @@ export const AuthProvider = ({ children }) => {
         mobileNumber,
       });
       const { token, user: userData } = response.data;
-      localStorage.setItem("neufeed_token", token);
+      localStorage.setItem("neuzgo_token", token);
       setUser(userData);
       return { success: true };
     } catch (error) {
@@ -71,7 +71,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem("neufeed_token");
+    localStorage.removeItem("neuzgo_token");
     setUser(null);
   };
 

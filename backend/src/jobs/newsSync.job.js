@@ -1,16 +1,13 @@
 const News = require("../models/news.model");
 const { fetchTopHeadlines } = require("../service/gnews.service");
 
-/**
- * Synchronizes news articles from GNews API to MongoDB.
- * Fetch default parameters: country=in, category=general, lang=en, max=10, page=1
- */
 async function syncNews() {
   const startTime = Date.now();
-  console.log("⏱️ Cron started");
+  console.log("⏱️ [Cron] News sync started — scope: general/IN/EN/page1");
 
   try {
-    console.log("📡 API request started");
+    // ── 1. Fetch from GNews ────────────────────────────────────────────────────
+    console.log("📡 [Cron] Calling GNews API...");
     const articles = await fetchTopHeadlines({
       page: 1,
       limit: 10,
@@ -18,96 +15,111 @@ async function syncNews() {
       country: "in",
       language: "en",
     });
-    console.log("✅ API request completed");
+    console.log(`✅ [Cron] GNews returned ${articles.length} articles`);
 
     const fetchedCount = articles.length;
-    console.log(`📰 Number of fetched articles: ${fetchedCount}`);
 
     if (fetchedCount === 0) {
-      console.log("⚠️ No articles fetched from GNews.");
-      return;
-    }
+      console.log("⚠️ [Cron] No articles returned from GNews — skipping upsert");
+    } else {
+      // ── 2. Retrieve existing records for change detection ──────────────────
+      const articleUrls = articles.map((a) => a.articleUrl);
+      const existingArticles = await News.find(
+        { articleUrl: { $in: articleUrls } },
+        { articleUrl: 1, title: 1, description: 1, content: 1, author: 1, imageUrl: 1, publishedAt: 1, category: 1, country: 1, language: 1, source: 1 }
+      ).lean();
+      const existingMap = new Map(existingArticles.map((a) => [a.articleUrl, a]));
 
-    // Retrieve existing articles to determine which need updating versus inserting
-    const articleUrls = articles.map(a => a.articleUrl);
-    const existingArticles = await News.find({ articleUrl: { $in: articleUrls } });
-    const existingMap = new Map(existingArticles.map(a => [a.articleUrl, a]));
+      const bulkOps = [];
+      let insertedCount = 0;
+      let updatedCount = 0;
 
-    const bulkOps = [];
-    let insertedCount = 0;
-    let updatedCount = 0;
+      const CHECK_FIELDS = [
+        "title", "description", "content", "author",
+        "imageUrl", "category", "country", "language",
+      ];
 
-    for (const article of articles) {
-      const existing = existingMap.get(article.articleUrl);
-      if (existing) {
-        // Check if fields have changed
-        let hasChanges = false;
-        const fieldsToUpdate = {};
+      for (const article of articles) {
+        const existing = existingMap.get(article.articleUrl);
 
-        // Compare relevant fields
-        const checkFields = ["title", "description", "content", "author", "imageUrl", "publishedAt", "category", "country", "language"];
-        for (const field of checkFields) {
-          // Normalize publishedAt date comparison
-          if (field === "publishedAt") {
-            if (new Date(existing.publishedAt).getTime() !== new Date(article.publishedAt).getTime()) {
-              hasChanges = true;
-              fieldsToUpdate.publishedAt = article.publishedAt;
+        if (existing) {
+          // Determine which fields actually changed
+          const fieldsToUpdate = {};
+
+          for (const field of CHECK_FIELDS) {
+            if (existing[field] !== article[field]) {
+              fieldsToUpdate[field] = article[field];
             }
-          } else if (existing[field] !== article[field]) {
-            hasChanges = true;
-            fieldsToUpdate[field] = article[field];
           }
-        }
 
-        // Compare source object nested properties
-        if (
-          existing.source?.name !== article.source?.name ||
-          existing.source?.url !== article.source?.url
-        ) {
-          hasChanges = true;
-          fieldsToUpdate.source = article.source;
-        }
+          // Date comparison — normalize to timestamps
+          if (new Date(existing.publishedAt).getTime() !== new Date(article.publishedAt).getTime()) {
+            fieldsToUpdate.publishedAt = article.publishedAt;
+          }
 
-        if (hasChanges) {
+          // Nested source object
+          if (
+            existing.source?.name !== article.source?.name ||
+            existing.source?.url !== article.source?.url
+          ) {
+            fieldsToUpdate.source = article.source;
+          }
+
+          if (Object.keys(fieldsToUpdate).length > 0) {
+            bulkOps.push({
+              updateOne: {
+                filter: { articleUrl: article.articleUrl },
+                update: { $set: fieldsToUpdate },
+              },
+            });
+            updatedCount++;
+          }
+        } else {
           bulkOps.push({
-            updateOne: {
-              filter: { articleUrl: article.articleUrl },
-              update: { $set: fieldsToUpdate },
-            },
+            insertOne: { document: article },
           });
-          updatedCount++;
+          insertedCount++;
         }
-      } else {
-        bulkOps.push({
-          insertOne: {
-            document: article,
-          },
-        });
-        insertedCount++;
       }
+
+      if (bulkOps.length > 0) {
+        await News.bulkWrite(bulkOps, { ordered: false });
+      }
+
+      console.log(`📊 [Cron] Upsert complete — inserted: ${insertedCount}, updated: ${updatedCount}`);
     }
 
-    if (bulkOps.length > 0) {
-      await News.bulkWrite(bulkOps);
-    }
-
-    // Cleanup: Delete articles older than 30 days
+    // ── 3. Cleanup ─────────────────────────────────────────────────────────────
+    // General: 30-day retention (kept fresh by this cron)
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-    const deleteResult = await News.deleteMany({
+    const generalCleanup = await News.deleteMany({
+      category: "general",
       publishedAt: { $lt: thirtyDaysAgo },
     });
-    const deletedCount = deleteResult.deletedCount || 0;
+
+    // Non-general: 48-hour retention (user-triggered, re-fetched on demand)
+    // Keeps DB size manageable without leaving category pages cold indefinitely.
+    const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
+    const categoryCleanup = await News.deleteMany({
+      category: { $ne: "general" },
+      publishedAt: { $lt: fortyEightHoursAgo },
+    });
+
+    const deletedCount = (generalCleanup.deletedCount || 0) + (categoryCleanup.deletedCount || 0);
 
     const duration = Date.now() - startTime;
-
-    console.log(`📊 Sync Summary:`);
-    console.log(`  - Number of inserted articles: ${insertedCount}`);
-    console.log(`  - Number of updated articles: ${updatedCount}`);
-    console.log(`  - Number of deleted articles: ${deletedCount}`);
-    console.log(`⏱️ Total execution time: ${duration}ms`);
+    console.log("📊 [Cron] Sync Summary:");
+    console.log(`   Inserted : ${fetchedCount > 0 ? (fetchedCount - (fetchedCount - (bulkOps?.length || 0))) : 0}`);
+    console.log(`   Deleted  : ${deletedCount} (general >30d: ${generalCleanup.deletedCount}, other >48h: ${categoryCleanup.deletedCount})`);
+    console.log(`   Duration : ${duration}ms`);
 
   } catch (error) {
-    console.error("❌ Error in News Synchronization job:", error);
+    // Detect GNews 429 specifically so it shows up clearly in logs
+    if (error.response?.status === 429) {
+      console.error("❌ [Cron] GNews rate limit hit (HTTP 429) — will retry on next scheduled run");
+    } else {
+      console.error("❌ [Cron] News sync error:", error.message);
+    }
   }
 }
 

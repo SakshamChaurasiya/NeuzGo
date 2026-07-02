@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8001/api";
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -12,7 +12,7 @@ const apiClient = axios.create({
 // Request interceptor to automatically attach authorization headers
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("neufeed_token");
+    const token = localStorage.getItem("neuzgo_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -29,7 +29,7 @@ apiClient.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       // Clear token and reload or let contexts handle it
-      localStorage.removeItem("neufeed_token");
+      localStorage.removeItem("neuzgo_token");
     }
     return Promise.reject(error);
   }

@@ -1,300 +1,219 @@
 const News = require("../models/news.model");
+const { fetchTopHeadlines } = require("../service/gnews.service");
 
-// ─── Configuration (Task 7.1) ─────────────────────────────────────────────────
-// Centralised constants for the smart cache-first logic.
-// Adjust these values (or move to env vars) to tune caching behaviour.
+// ─── Configuration ─────────────────────────────────────────────────────────────
 const CONFIG = {
-  /**
-   * Time window (ms) within which duplicate API calls for the same
-   * category/country/language combination are suppressed.
-   * Default: 15 minutes.
-   */
-  CACHE_WINDOW_MS: 15 * 60 * 1000,
-
-  /**
-   * Default number of articles per page when no limit is supplied.
-   */
+  /** Articles per page when no limit is provided. */
   DEFAULT_PAGE_LIMIT: 10,
 
-  /**
-   * Default category used when none is provided in the query string.
-   */
+  /** Category/country/language defaults. */
   DEFAULT_CATEGORY: "general",
-
-  /**
-   * Default country code.
-   */
   DEFAULT_COUNTRY: "in",
+  DEFAULT_LANGUAGE: "en",
 
   /**
-   * Default language code.
+   * In-process deduplication window (ms).
+   * Prevents duplicate GNews calls for the same combination within 15 minutes.
+   * Resets on process restart — intentional, covered by rateLimitedUntil below.
    */
-  DEFAULT_LANGUAGE: "en",
+  DEDUP_WINDOW_MS: 15 * 60 * 1000,
+
+  /**
+   * How long to back off after receiving HTTP 429 from GNews (ms).
+   * 1 hour gives the quota window time to recover.
+   */
+  RATE_LIMIT_BACKOFF_MS: 60 * 60 * 1000,
 };
 
-// Request deduplication mechanism (Requirement 9.3)
-// Tracks recent API calls to prevent redundant fetches within 15-minute window
-const recentFetches = new Map(); // Key: "category:country:language", Value: timestamp
+// ─── Durable rate-limit flag ──────────────────────────────────────────────────
+// When GNews returns 429 this timestamp is set to Date.now() + BACKOFF.
+// Every subsequent GNews call checks this first and skips the API call if
+// we are still within the backoff window. Survives across requests (module-scope).
+let rateLimitedUntil = 0;
+
+// ─── Request deduplication map ────────────────────────────────────────────────
+// Key: "category:country:language"  Value: timestamp of last successful fetch
+const recentFetches = new Map();
 
 /**
- * Check if we should fetch from GNews API based on recent fetch history
- * @param {string} category - News category
- * @param {string} country - Country code
- * @param {string} language - Language code
- * @returns {boolean} - True if fetch should proceed, false if within cache window
+ * Returns true if a GNews API call is allowed for this combination.
+ * Returns false if:
+ *   - We are still within the 1-hour rate-limit backoff, OR
+ *   - The same combination was fetched within the last 15 minutes.
  */
-function shouldFetchFromAPI(category, country, language) {
-  const key = `${category}:${country}:${language}`;
-  const lastFetch = recentFetches.get(key);
+function canCallGNews(category, country, language) {
   const now = Date.now();
-  
-  if (lastFetch && (now - lastFetch) < CONFIG.CACHE_WINDOW_MS) {
-    const secondsAgo = Math.floor((now - lastFetch) / 1000);
-    console.log(`[Dedup] ⏭️ Skipping API call for ${key} - fetched ${secondsAgo}s ago (within 15min window)`);
+
+  // Global rate-limit backoff (survives request boundaries)
+  if (now < rateLimitedUntil) {
+    const remainingMin = Math.ceil((rateLimitedUntil - now) / 60000);
+    console.log(`[GNews] 🚫 Rate-limit backoff active — skipping API call (${remainingMin} min remaining)`);
     return false;
   }
-  
-  recentFetches.set(key, now);
-  console.log(`[Dedup] ✅ Allowing API call for ${key}`);
+
+  // Per-combination deduplication
+  const key = `${category}:${country}:${language}`;
+  const lastFetch = recentFetches.get(key);
+  if (lastFetch && now - lastFetch < CONFIG.DEDUP_WINDOW_MS) {
+    const secAgo = Math.floor((now - lastFetch) / 1000);
+    console.log(`[GNews] ⏭️ Dedup hit for "${key}" — fetched ${secAgo}s ago, skipping`);
+    return false;
+  }
+
   return true;
 }
 
-// Periodic cleanup to remove old entries from deduplication map
-// Runs every 5 minutes to prevent unbounded memory growth
+/** Mark a combination as just-fetched so the dedup window starts. */
+function markFetched(category, country, language) {
+  recentFetches.set(`${category}:${country}:${language}`, Date.now());
+}
+
+/** Activate the global rate-limit backoff. */
+function activateRateLimitBackoff() {
+  rateLimitedUntil = Date.now() + CONFIG.RATE_LIMIT_BACKOFF_MS;
+  const until = new Date(rateLimitedUntil).toISOString();
+  console.warn(`[GNews] ⚠️ HTTP 429 received — GNews calls suppressed until ${until}`);
+}
+
+// Periodic cleanup of the dedup map to prevent unbounded memory growth
 setInterval(() => {
   const now = Date.now();
   let cleaned = 0;
-  
-  for (const [key, timestamp] of recentFetches.entries()) {
-    if (now - timestamp > CONFIG.CACHE_WINDOW_MS) {
+  for (const [key, ts] of recentFetches.entries()) {
+    if (now - ts > CONFIG.DEDUP_WINDOW_MS) {
       recentFetches.delete(key);
       cleaned++;
     }
   }
-  
   if (cleaned > 0) {
-    console.log(`[Dedup Cleanup] 🧹 Removed ${cleaned} old entries from deduplication map`);
+    console.log(`[GNews Dedup] 🧹 Removed ${cleaned} stale entries`);
   }
-}, 5 * 60 * 1000); // Cleanup every 5 minutes
+}, 5 * 60 * 1000);
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /**
- * Log API usage for monitoring GNews API quota consumption (Requirement 9.5)
- * @param {object} params - Request parameters {category, country, language}
- * @param {number} articleCount - Number of articles fetched from GNews API
- * @param {string} source - Source of the API call (controller/cron)
+ * Bulk-upsert articles into MongoDB using articleUrl as the unique key.
+ * Prevents duplicates; updates metadata if a field changed.
+ * @param {object[]} articles — normalised article objects from gnews.service
  */
-function logAPIUsage(params, articleCount, source) {
-  console.log(`[API Usage] ${new Date().toISOString()} | Source: ${source} | ` +
-    `Category: ${params.category} | Country: ${params.country} | Lang: ${params.language} | ` +
-    `Fetched: ${articleCount} articles`);
+async function upsertArticles(articles) {
+  if (!articles.length) return;
+  const ops = articles.map((article) => ({
+    updateOne: {
+      filter: { articleUrl: article.articleUrl },
+      update: { $set: article },
+      upsert: true,
+    },
+  }));
+  await News.bulkWrite(ops, { ordered: false });
+  console.log(`[DB] ✅ Upserted ${articles.length} articles`);
 }
 
+// ─── Controllers ──────────────────────────────────────────────────────────────
+
+/**
+ * GET /api/news
+ *
+ * Database-first strategy:
+ *   1. Count matching documents in MongoDB.
+ *   2. If DB has enough articles for the requested page → serve directly.
+ *   3. If DB is short AND GNews is allowed → fetch page 1 from GNews, upsert, re-query.
+ *   4. On 429 → activate backoff, serve whatever is in the DB.
+ *   5. On any other GNews failure → serve from DB (graceful degradation).
+ *
+ * GNews is ALWAYS called with page=1 only.
+ * MongoDB handles all pagination — GNews page > 1 is not used on the free tier.
+ */
 const getNews = async (req, res) => {
   try {
-    const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 10;
-
-    const category = req.query.category || "general";
-    const country = req.query.country || "in";
-    const language = req.query.language || "en";
-    const search = req.query.search || "";
+    const page     = Math.max(1, Number(req.query.page)  || 1);
+    const limit    = Math.max(1, Number(req.query.limit) || CONFIG.DEFAULT_PAGE_LIMIT);
+    const category = req.query.category || CONFIG.DEFAULT_CATEGORY;
+    const country  = req.query.country  || CONFIG.DEFAULT_COUNTRY;
+    const language = req.query.language || CONFIG.DEFAULT_LANGUAGE;
+    const search   = req.query.search   || "";
 
     const skip = (page - 1) * limit;
 
-    const filter = {
-      category,
-      country,
-      language,
-    };
-
+    // Build filter
+    const filter = { category, country, language };
     if (search) {
       filter.$or = [
-        { title: { $regex: search, $options: "i" } },
+        { title:       { $regex: search, $options: "i" } },
         { description: { $regex: search, $options: "i" } },
-        { content: { $regex: search, $options: "i" } },
+        { content:     { $regex: search, $options: "i" } },
       ];
     }
 
-    console.log(`[News Request] 🔍 Checking MongoDB database for articles (category: ${category}, country: ${country}, lang: ${language}, search: "${search}")...`);
-
-    // Calculate required article count for pagination (Requirement 2.1)
+    // ── Step 1: How many articles does MongoDB already have? ──────────────────
     const requiredCount = page * limit;
-    console.log(`[News Request] 📊 Required articles for page ${page}: ${requiredCount}`);
+    console.log(`[News] 🔍 ${category}/${country}/${language} page=${page} limit=${limit} — need ${requiredCount} docs`);
 
-    // Query MongoDB to get cached article count with current filters (Requirement 2.2)
-    // Wrap in try-catch for MongoDB failure handling (Requirement 8.3)
-    let cachedCount;
-    try {
-      cachedCount = await News.countDocuments(filter);
-      console.log(`[News Request] 💾 Cached articles in MongoDB: ${cachedCount}`);
-    } catch (dbError) {
-      console.error(`[News Request] ❌ MongoDB query failed:`, dbError.message);
-      console.log(`[News Request] 🔄 Attempting GNews API as fallback...`);
-      
-      // Fallback to GNews API when MongoDB fails (Requirement 8.3)
+    let cachedCount = await News.countDocuments(filter);
+    console.log(`[News] 💾 MongoDB has ${cachedCount} matching articles`);
+
+    // ── Step 2: Fetch from GNews only when genuinely needed ───────────────────
+    // Condition: DB is short AND we haven't recently fetched AND not rate-limited
+    if (cachedCount < requiredCount && !search && canCallGNews(category, country, language)) {
+      console.log(`[News] 📡 DB short by ${requiredCount - cachedCount} — calling GNews (page=1 only)...`);
+
       try {
-        const { fetchTopHeadlines } = require("../service/gnews.service");
-        const fetchedArticles = await fetchTopHeadlines({
-          page: 1,
-          limit: requiredCount,
+        const fetched = await fetchTopHeadlines({
+          page: 1,       // Always page 1 — free tier only
+          limit: 10,     // Max the free tier reliably returns
           category,
           country,
           language,
         });
 
-        if (fetchedArticles.length > 0) {
-          console.log(`[News Request] ✅ GNews API fallback successful. Returning ${fetchedArticles.length} articles.`);
-          
-          // Log API usage for monitoring (Task 1.4 - DB fallback path)
-          logAPIUsage({ category, country, language }, fetchedArticles.length, "controller-db-fallback");
+        markFetched(category, country, language);
 
-          // Return paginated results from API without saving to DB
-          const paginatedArticles = fetchedArticles.slice(skip, skip + limit);
-          return res.status(200).json({
-            success: true,
-            page,
-            limit,
-            total: fetchedArticles.length,
-            totalPages: Math.ceil(fetchedArticles.length / limit),
-            data: paginatedArticles,
-          });
+        if (fetched.length > 0) {
+          await upsertArticles(fetched);
+          // Re-count after upsert
+          cachedCount = await News.countDocuments(filter);
+          console.log(`[News] ✅ After upsert — MongoDB now has ${cachedCount} matching articles`);
         } else {
-          console.log(`[News Request] ⚠️ GNews API returned 0 articles.`);
-          return res.status(503).json({
-            success: false,
-            message: 'News service temporarily unavailable. Please try again later.',
-          });
+          console.log("[News] ⚠️ GNews returned 0 articles");
         }
-      } catch (apiError) {
-        console.error(`[News Request] ❌ Both MongoDB and GNews API failed`);
-        return res.status(503).json({
-          success: false,
-          message: 'News service temporarily unavailable. Please try again later.',
-        });
+      } catch (apiErr) {
+        if (apiErr.response?.status === 429) {
+          activateRateLimitBackoff();
+        } else {
+          console.error("[News] ❌ GNews API error:", apiErr.message);
+        }
+        // Graceful degradation — fall through and serve from DB
       }
+    } else if (cachedCount >= requiredCount) {
+      console.log("[News] ✅ Cache hit — serving from MongoDB, no GNews call needed");
+    } else if (search) {
+      console.log("[News] 🔍 Search query active — skipping GNews, serving DB results only");
     }
 
-    let articles, total;
-
-    // Decision logic: Cache-first with smart fetching (Requirement 2.3, 2.4, 2.5)
-    if (cachedCount >= requiredCount) {
-      // Sufficient articles in cache - serve from MongoDB without API call (Requirement 2.3)
-      console.log(`[News Request] ✅ Cache hit! Serving from MongoDB (cached: ${cachedCount} >= required: ${requiredCount})`);
-      
-      articles = await News.find(filter)
+    // ── Step 3: Serve from MongoDB ─────────────────────────────────────────────
+    const [articles, total] = await Promise.all([
+      News.find(filter)
         .sort({ publishedAt: -1 })
         .skip(skip)
-        .limit(limit);
-      
-      total = cachedCount;
-      
-      console.log(`[News Request] 🗄️ Serving news directly from MongoDB database. NO GNews API call made.`);
-    } else {
-      // Insufficient articles in cache - fetch missing articles from GNews API (Requirement 2.4)
-      const missingCount = requiredCount - cachedCount; // Requirement 2.5
-      console.log(`[News Request] ⚠️ Cache miss! Missing ${missingCount} articles (cached: ${cachedCount}, required: ${requiredCount})`);
-      
-      // Check if we should fetch from API (deduplication check - Requirement 9.3)
-      if (!shouldFetchFromAPI(category, country, language)) {
-        console.log(`[News Request] 🚫 Skipping GNews API call due to recent fetch. Serving available cache.`);
-        // Serve whatever is in cache
-        articles = await News.find(filter)
-          .sort({ publishedAt: -1 })
-          .skip(skip)
-          .limit(limit);
-        total = cachedCount;
-      } else {
-        console.log(`[News Request] 📡 Fetching ${missingCount} missing articles from GNews API...`);
-        const { fetchTopHeadlines } = require("../service/gnews.service");
-        
-        try {
-          const fetchedArticles = await fetchTopHeadlines({
-            page: 1,
-            limit: missingCount, // Only fetch the number of missing articles (Requirement 2.5)
-            category,
-            country,
-            language,
-          });
+        .limit(limit)
+        .lean(),          // lean(): plain JS objects, ~2-3x faster for read-only
+      News.countDocuments(filter),
+    ]);
 
-        if (fetchedArticles.length > 0) {
-          console.log(`[News Request] 📡 Fetched ${fetchedArticles.length} articles from GNews. Saving to MongoDB...`);
-          
-          // Log API usage for monitoring (Task 1.4)
-          logAPIUsage({ category, country, language }, fetchedArticles.length, "controller");
-
-          // Bulk write with upsert to prevent duplicates (Requirement 3.2)
-          const ops = fetchedArticles.map((article) => ({
-            updateOne: {
-              filter: { articleUrl: article.articleUrl },
-              update: { $set: article },
-              upsert: true,
-            },
-          }));
-
-          await News.bulkWrite(ops);
-
-          // Query again to get the final results with updated cache
-          articles = await News.find(filter)
-            .sort({ publishedAt: -1 })
-            .skip(skip)
-            .limit(limit);
-
-          total = await News.countDocuments(filter);
-          
-          console.log(`[News Request] ✅ Successfully saved and retrieved articles. Total now: ${total}`);
-        } else {
-          console.log(`[News Request] ⚠️ GNews API returned 0 articles.`);
-          // Serve whatever is in cache
-          articles = await News.find(filter)
-            .sort({ publishedAt: -1 })
-            .skip(skip)
-            .limit(limit);
-          total = cachedCount;
-        }
-        } catch (apiErr) {
-          // Enhanced error handling for GNews API failures (Requirement 8.1, 8.2)
-          console.error(`[News Request] ❌ Failed to fetch from GNews API:`, apiErr.message);
-          
-          // Check for rate limit error (HTTP 429) (Requirement 8.2)
-          if (apiErr.response?.status === 429) {
-            console.warn(`[News Request] ⚠️ GNews API rate limit exceeded (HTTP 429). Serving from cache.`);
-            console.log(`[API Usage] ${new Date().toISOString()} | Rate Limit Hit | Category: ${category} | Country: ${country} | Lang: ${language}`);
-          }
-          
-          // Fallback: serve from cache even if insufficient (Requirement 8.1)
-          articles = await News.find(filter)
-            .sort({ publishedAt: -1 })
-            .skip(skip)
-            .limit(limit);
-          total = cachedCount;
-          
-          // If cache is completely empty, return 503 service unavailable (Requirement 8.5)
-          if (articles.length === 0) {
-            console.error(`[News Request] ❌ No cached articles available and API failed. Returning 503.`);
-            return res.status(503).json({
-              success: false,
-              message: 'News service temporarily unavailable. Please try again later.',
-            });
-          }
-          
-          console.log(`[News Request] ✅ Serving ${articles.length} articles from cache despite API failure.`);
-        }
-      }
-    }
-
-    console.log(`[News Request] ✅ Returning ${articles.length} articles.`);
+    console.log(`[News] 📤 Returning ${articles.length} articles (total: ${total})`);
 
     return res.status(200).json({
-      success: true,
+      success:    true,
       page,
       limit,
       total,
-      totalPages: Math.ceil(total / limit),
-      data: articles,
+      totalPages: Math.ceil(total / limit) || 1,
+      data:       articles,
     });
-  } catch (err) {
-    console.error(err);
 
+  } catch (err) {
+    console.error("[News] ❌ Unhandled error in getNews:", err);
     return res.status(500).json({
       success: false,
       message: err.message,
@@ -302,9 +221,13 @@ const getNews = async (req, res) => {
   }
 };
 
+/**
+ * GET /api/news/:id
+ * Returns a single article by MongoDB _id.
+ */
 const getNewsById = async (req, res) => {
   try {
-    const article = await News.findById(req.params.id);
+    const article = await News.findById(req.params.id).lean();
 
     if (!article) {
       return res.status(404).json({
