@@ -1,5 +1,6 @@
 import React, { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 import RootLayout from "./layouts/RootLayout";
 
 // Lazy-loaded pages for optimization and code-splitting
@@ -52,6 +53,7 @@ function App() {
           />
         </Route>
       </Routes>
+      <Toaster position="bottom-right" />
     </Suspense>
   );
 }
