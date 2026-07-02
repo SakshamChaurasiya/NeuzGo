@@ -2,6 +2,7 @@ import React, { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import RootLayout from "./layouts/RootLayout";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 // Lazy-loaded pages for optimization and code-splitting
 const Home = lazy(() => import("./pages/Home"));
@@ -13,7 +14,7 @@ const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
 const Profile = lazy(() => import("./pages/Profile"));
 
-// Premium Loading Skeletons
+// Premium Loading Skeleton
 const PageSkeleton = () => (
   <div className="max-w-7xl mx-auto px-4 py-8 space-y-8 animate-pulse">
     <div className="h-10 bg-charcoal-100 rounded w-1/3"></div>
@@ -37,11 +38,26 @@ function App() {
           <Route path="category/:categoryId" element={<Category />} />
           <Route path="article/:id" element={<ArticleDetails />} />
           <Route path="search" element={<Search />} />
-          <Route path="bookmarks" element={<Bookmarks />} />
           <Route path="login" element={<Login />} />
           <Route path="signup" element={<Signup />} />
-          <Route path="profile" element={<Profile />} />
-          {/* Fallback route */}
+          {/* Protected routes — redirect to /login if unauthenticated */}
+          <Route
+            path="bookmarks"
+            element={
+              <ProtectedRoute>
+                <Bookmarks />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+          {/* Fallback */}
           <Route
             path="*"
             element={
