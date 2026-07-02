@@ -11,7 +11,7 @@ NeuzGo/
 ├── backend/                  # Express.js REST API
 │   ├── src/
 │   │   ├── controllers/      # Route logic
-│   │   ├── jobs/             # Scheduled background tasks (e.g., node-cron)
+│   │   ├── jobs/             # Scheduled background tasks (e.g., node-cron for news sync)
 │   │   ├── middleware/       # Custom Express middleware (auth, error handling)
 │   │   ├── models/           # Mongoose schemas (User, Article, Bookmark)
 │   │   ├── routes/           # API route definitions

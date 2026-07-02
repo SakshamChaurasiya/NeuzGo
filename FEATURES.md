@@ -14,7 +14,7 @@ NeuzGo is designed to offer a premium reading experience, robust user management
 | **News Synchronization** | Automated `node-cron` job running periodically to fetch from GNews. | ✅ |
 | | Bulk write operations to MongoDB to sync and update articles. | ✅ |
 | | Cleanup mechanism for deleting articles older than 30 days. | ✅ |
-| | Robust error handling and logging for synchronization runs. | ✅ |
+| | Robust error handling, logging, and rate limit strategies for GNews API. | ✅ |
 | **Home Page** | Dynamic Hero Slider for top news stories with auto-advance and crossfade. | ✅ |
 | | "Breaking News" scrolling ticker using custom CSS marquee. | ✅ |
 | | "Trending Headlines" sidebar for quick access to popular stories. | ✅ |
