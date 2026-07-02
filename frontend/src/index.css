@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-serif: 'Merriweather', Georgia, serif;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-white text-charcoal-800 font-sans min-h-screen flex flex-col selection:bg-accent-blue selection:text-white;
+  }
+
+  /* Custom scrollbar to maintain premium aesthetics */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-charcoal-50;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-charcoal-300 rounded hover:bg-charcoal-400 transition-colors;
+  }
+}
+
+@layer utilities {
+  .premium-border {
+    border-color: rgba(26, 26, 26, 0.08);
+  }
+}
+
+/* Custom classes for typography and clean page loading skeleton */
+.skeleton {
+  @apply bg-charcoal-100 animate-pulse rounded;
+}
