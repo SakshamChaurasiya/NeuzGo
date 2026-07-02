@@ -9,7 +9,7 @@ const Footer = () => {
           {/* Logo and Brand */}
           <div className="md:col-span-2">
             <span className="font-serif text-2xl font-black tracking-tight text-white">
-              NEUFEED
+              NEUZGO
             </span>
             <p className="mt-4 text-sm text-charcoal-400 max-w-sm leading-relaxed">
               A premium independent news platform delivering curated, high-quality headlines and in-depth reporting from around the globe.
@@ -40,7 +40,7 @@ const Footer = () => {
           {/* About/Policy */}
           <div>
             <h3 className="text-xs font-bold uppercase tracking-widest text-white mb-4">
-              NeuFeed
+              NeuzGO
             </h3>
             <ul className="space-y-2 text-sm">
               <li>
@@ -61,7 +61,7 @@ const Footer = () => {
 
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-charcoal-900 flex flex-col sm:flex-row items-center justify-between text-xs text-charcoal-500">
-          <p>© {new Date().getFullYear()} NeuFeed. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} NeuzGo. All rights reserved.</p>
           <p className="mt-2 sm:mt-0">Designed for readability & elegant speed.</p>
         </div>
       </div>

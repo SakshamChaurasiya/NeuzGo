@@ -47,7 +47,7 @@ const Navbar = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center">
             <span className="font-serif text-2xl font-black tracking-tight text-charcoal-900 hover:opacity-90 transition-opacity">
-              NEUFEED
+              NEUZGO
             </span>
           </Link>
 
