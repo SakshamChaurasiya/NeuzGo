@@ -246,7 +246,7 @@ const ArticleDetails = () => {
 
           {/* Related Articles Sidebar Column (4 grid units width) */}
           <aside className="lg:col-span-4 space-y-8 border-t lg:border-t-0 lg:border-l border-charcoal-100 pt-8 lg:pt-0 lg:pl-8">
-            <h3 className="font-serif text-xl font-extrabold text-charcoal-900 pb-3 border-b border-charcoal-100">
+            <h3 className="font-serif text-xl font-extrabold text-charcoal-900 pb-3 border-b border-charcoal-100 mt-5">
               Related Coverage
             </h3>
 

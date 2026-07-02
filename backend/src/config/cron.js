@@ -4,7 +4,7 @@ const { syncNews } = require("../jobs/newsSync.job");
 
 const CRON_CONFIG = {
   
-  CRON_SCHEDULE: "*/5 * * * *",
+  CRON_SCHEDULE: "*/3 * * * *",
 
   CRON_FETCH_LIMIT: 10,
 };
