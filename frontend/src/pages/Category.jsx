@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import apiClient from "../api/client";
 import ArticleCard from "../components/ArticleCard";
 import { FiFilter, FiGlobe, FiInfo } from "react-icons/fi";
+import usePrefetch from "../hooks/usePrefetch";
 
 const COUNTRIES = [
   { code: "in", name: "India" },
@@ -32,6 +33,9 @@ const Category = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
+  // Prefetch hook — used to retrieve any pre-warmed data from Navbar hovers (Task 5.1)
+  const { getCachedData } = usePrefetch();
+
   // Reset page when category, country or language changes
   useEffect(() => {
     setPage(1);
@@ -41,6 +45,20 @@ const Category = () => {
     const fetchCategoryArticles = async () => {
       setLoading(true);
       try {
+        // Task 5.1: Check prefetch cache for page 1 before making a network request.
+        // Only applies to the first page because prefetch always fetches page 1.
+        if (page === 1) {
+          const cachedData = getCachedData(categoryId, { country, language, limit: 12 });
+          if (cachedData) {
+            console.log(`[Category] ⚡ Using prefetched cache for "${categoryId}" — skipping API call`);
+            setArticles(cachedData.data);
+            setTotalPages(cachedData.totalPages || 1);
+            setLoading(false);
+            return; // Skip API call entirely
+          }
+          console.log(`[Category] 📡 No prefetch cache for "${categoryId}" — fetching from API`);
+        }
+
         const response = await apiClient.get("/news", {
           params: {
             category: categoryId,
@@ -64,7 +82,7 @@ const Category = () => {
     };
 
     fetchCategoryArticles();
-  }, [categoryId, country, language, page]);
+  }, [categoryId, country, language, page, getCachedData]);
 
   return (
     <div className="space-y-10">

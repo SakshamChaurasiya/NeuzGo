@@ -3,6 +3,7 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { FiSearch, FiBookmark, FiUser, FiLogOut, FiMenu, FiX } from "react-icons/fi";
 import { useAuth } from "../contexts/AuthContext";
 import { useBookmarks } from "../contexts/BookmarkContext";
+import usePrefetch from "../hooks/usePrefetch";
 
 const CATEGORIES = [
   { id: "general", name: "General" },
@@ -21,6 +22,9 @@ const Navbar = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
+
+  // Prefetch hook — only wired to desktop links (Task 4.1)
+  const { handleMouseEnter, handleMouseLeave } = usePrefetch();
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -64,6 +68,10 @@ const Navbar = () => {
                       : "border-transparent text-charcoal-500 hover:text-charcoal-900"
                   }`
                 }
+                onMouseEnter={() =>
+                  handleMouseEnter(cat.id, { country: "in", language: "en", limit: 12 })
+                }
+                onMouseLeave={handleMouseLeave}
               >
                 {cat.name}
               </NavLink>
