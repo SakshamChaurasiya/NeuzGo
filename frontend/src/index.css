@@ -19,7 +19,7 @@
     @apply bg-white text-charcoal-800 font-sans min-h-screen flex flex-col selection:bg-accent-blue selection:text-white;
   }
 
-  /* Custom scrollbar to maintain premium aesthetics */
+  /* Custom premium scrollbar */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -39,14 +39,21 @@
     border-color: rgba(26, 26, 26, 0.08);
   }
 
+  /* Breaking news marquee */
   .animate-marquee {
     animation: marquee 25s linear infinite;
   }
-  
+
   .animate-marquee:hover {
     animation-play-state: paused;
   }
 
+  /* Smooth page-level fade in */
+  .animate-fade-in {
+    animation: fadeIn 0.35s ease-out both;
+  }
+
+  /* Scale helpers (not in standard Tailwind v3) */
   .scale-101 {
     transform: scale(1.01);
   }
@@ -54,18 +61,25 @@
   .scale-102 {
     transform: scale(1.02);
   }
+
+  /* Left border shorthand */
+  .border-l-3 {
+    border-left-width: 3px;
+    border-left-style: solid;
+  }
 }
 
 @keyframes marquee {
-  0% {
-    transform: translateX(10%);
-  }
-  100% {
-    transform: translateX(-100%);
-  }
+  0%   { transform: translateX(10%); }
+  100% { transform: translateX(-100%); }
 }
 
-/* Custom classes for typography and clean page loading skeleton */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Skeleton pulse placeholder */
 .skeleton {
   @apply bg-charcoal-100 animate-pulse rounded;
 }
