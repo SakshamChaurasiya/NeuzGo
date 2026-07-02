@@ -7,8 +7,8 @@ const { syncNews } = require("../jobs/newsSync.job");
 function initCron() {
   console.log("⏰ Initializing news synchronization cron job...");
   
-  // "0 */4 * * *": Run every 4 hours
-  cron.schedule("0 */4 * * *", async () => {
+  // "0 */4 * * *": Run every 15 mins
+  cron.schedule("*/15 * * * *", async () => {
     console.log("⏰ Scheduled news synchronization triggered");
     await syncNews();
   });

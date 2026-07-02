@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { FiCalendar, FiArrowRight, FiBookmark } from "react-icons/fi";
+import { FiArrowRight, FiBookmark } from "react-icons/fi";
 import { FaBookmark } from "react-icons/fa";
 import apiClient from "../api/client";
 import ArticleCard from "../components/ArticleCard";
+import HeroSlider from "../components/HeroSlider";
 import { useBookmarks } from "../contexts/BookmarkContext";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -90,8 +91,9 @@ const Home = () => {
     });
   };
 
-  // Divide homepage content (only on first page)
-  const heroArticle = newsFeed[0];
+  // Divide homepage content
+  // First 5 go to the hero slider; next 4 are the trending sidebar; rest fill the Latest feed
+  const sliderArticles = newsFeed.slice(0, 5);
   const trendingArticles = newsFeed.slice(1, 5);
   const remainingArticles = currentPage === 1 ? newsFeed.slice(5) : newsFeed;
 
@@ -115,72 +117,27 @@ const Home = () => {
         </div>
       )}
 
-      {/* Hero Grid Section */}
+      {/* Hero Slider + Trending Sidebar */}
       {loadingFeed ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-4">
-            <div className="aspect-[16/9] w-full skeleton"></div>
-            <div className="h-6 skeleton w-1/4"></div>
-            <div className="h-8 skeleton w-3/4"></div>
-            <div className="h-4 skeleton w-full"></div>
-          </div>
+          <div className="lg:col-span-2 min-h-[420px] skeleton rounded-xl"></div>
           <div className="space-y-4">
-            <div className="h-8 skeleton w-1/3"></div>
+            <div className="h-8 skeleton w-1/2"></div>
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="h-20 skeleton w-full"></div>
             ))}
           </div>
         </div>
       ) : (
-        heroArticle && currentPage === 1 && (
+        newsFeed.length > 0 && currentPage === 1 && (
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Primary Hero Lead */}
-            <div className="lg:col-span-2 group relative flex flex-col justify-end overflow-hidden rounded-lg bg-charcoal-950 min-h-[420px] lg:min-h-[500px]">
-              <img
-                src={heroArticle.imageUrl || "https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1200&q=80"}
-                alt={heroArticle.title}
-                className="absolute inset-0 h-full w-full object-cover opacity-60 group-hover:scale-101 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-charcoal-950 via-charcoal-950/40 to-transparent"></div>
-              
-              <div className="relative p-6 sm:p-10 space-y-4">
-                <span className="bg-accent-blue text-white text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-sm">
-                  {heroArticle.category}
-                </span>
-                
-                <Link to={`/article/${heroArticle._id}`} className="block">
-                  <h2 className="font-serif text-2xl sm:text-4xl font-extrabold text-white leading-tight hover:text-charcoal-200 transition-colors">
-                    {heroArticle.title}
-                  </h2>
-                </Link>
-                
-                <p className="text-charcoal-300 text-sm sm:text-base line-clamp-2 max-w-2xl font-light">
-                  {heroArticle.description}
-                </p>
-
-                <div className="pt-2 flex items-center justify-between text-xs text-charcoal-400">
-                  <div className="flex items-center gap-4">
-                    <span>{heroArticle.source?.name}</span>
-                    <span>•</span>
-                    <span>{formatDate(heroArticle.publishedAt)}</span>
-                  </div>
-
-                  <button
-                    onClick={(e) => handleBookmarkToggle(e, heroArticle._id)}
-                    className="text-white hover:text-accent-amber transition-colors"
-                  >
-                    {isBookmarked(heroArticle._id) ? (
-                      <FaBookmark className="h-4.5 w-4.5 text-accent-amber" />
-                    ) : (
-                      <FiBookmark className="h-4.5 w-4.5" />
-                    )}
-                  </button>
-                </div>
-              </div>
+            {/* Hero Slider — spans 2 of 3 columns */}
+            <div className="lg:col-span-2">
+              <HeroSlider articles={sliderArticles} />
             </div>
 
             {/* Trending Sidebar */}
-            <div className="border border-charcoal-100 rounded-lg p-6 flex flex-col">
+            <div className="border border-charcoal-100 rounded-xl p-6 flex flex-col">
               <h3 className="font-serif text-xl font-extrabold text-charcoal-900 border-b border-charcoal-100 pb-3 mb-4">
                 Trending Headlines
               </h3>
