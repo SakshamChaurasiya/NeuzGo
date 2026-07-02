@@ -129,7 +129,25 @@ const login = async (req, res) => {
     }
 };
 
+const getMe = async (req, res) => {
+    try {
+        res.status(200).json({
+            success: true,
+            user: {
+                id: req.user._id,
+                username: req.user.username,
+                email: req.user.email,
+                phoneNumber: req.user.phoneNumber,
+            }
+        });
+    } catch (error) {
+        console.error("Get me error:", error);
+        res.status(500).json({ message: "Server error retrieving user profile." });
+    }
+};
+
 module.exports = {
     signup,
-    login
+    login,
+    getMe
 };

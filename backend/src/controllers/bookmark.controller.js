@@ -110,8 +110,50 @@ const deleteBookmark = async (req, res) => {
     }
 };
 
+// @desc    Delete bookmark by News article ID
+// @route   DELETE /api/bookmarks/news/:newsId
+// @access  Private
+const deleteBookmarkByNewsId = async (req, res) => {
+    try {
+        const { newsId } = req.params;
+
+        if (!newsId) {
+            return res.status(400).json({
+                success: false,
+                message: "News ID is required.",
+            });
+        }
+
+        const bookmark = await Bookmark.findOne({
+            newsId,
+            userId: req.user._id,
+        });
+
+        if (!bookmark) {
+            return res.status(404).json({
+                success: false,
+                message: "Bookmark not found or unauthorized.",
+            });
+        }
+
+        await bookmark.deleteOne();
+
+        return res.status(200).json({
+            success: true,
+            message: "Bookmark removed successfully.",
+        });
+    } catch (error) {
+        console.error("Delete bookmark by newsId error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Server error deleting bookmark.",
+        });
+    }
+};
+
 module.exports = {
     getBookmarks,
     addBookmarks,
     deleteBookmark,
+    deleteBookmarkByNewsId,
 };

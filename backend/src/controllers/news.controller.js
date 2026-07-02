@@ -8,6 +8,7 @@ const getNews = async (req, res) => {
     const category = req.query.category || "general";
     const country = req.query.country || "in";
     const language = req.query.language || "en";
+    const search = req.query.search || "";
 
     const skip = (page - 1) * limit;
 
@@ -17,7 +18,15 @@ const getNews = async (req, res) => {
       language,
     };
 
-    console.log(`[News Request] 🔍 Checking MongoDB database for articles (category: ${category}, country: ${country}, lang: ${language})...`);
+    if (search) {
+      filter.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+        { content: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    console.log(`[News Request] 🔍 Checking MongoDB database for articles (category: ${category}, country: ${country}, lang: ${language}, search: "${search}")...`);
 
     let [articles, total] = await Promise.all([
       News.find(filter)
