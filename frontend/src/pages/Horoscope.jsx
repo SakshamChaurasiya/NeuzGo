@@ -1,22 +1,36 @@
 import React, { useEffect, useState } from "react";
 import { FiCalendar, FiArrowRight, FiActivity, FiSmile, FiCompass, FiHeart } from "react-icons/fi";
+import {
+  TbZodiacAries,
+  TbZodiacTaurus,
+  TbZodiacGemini,
+  TbZodiacCancer,
+  TbZodiacLeo,
+  TbZodiacVirgo,
+  TbZodiacLibra,
+  TbZodiacScorpio,
+  TbZodiacSagittarius,
+  TbZodiacCapricorn,
+  TbZodiacAquarius,
+  TbZodiacPisces
+} from "react-icons/tb";
 import apiClient from "../api/client";
 import ArticleCard from "../components/ArticleCard";
 import { useAuth } from "../contexts/AuthContext";
 
 const ZODIAC_SIGNS = [
-  { id: "aries", name: "Aries", symbol: "♈", dateRange: "Mar 21 - Apr 19" },
-  { id: "taurus", name: "Taurus", symbol: "♉", dateRange: "Apr 20 - May 20" },
-  { id: "gemini", name: "Gemini", symbol: "♊", dateRange: "May 21 - Jun 20" },
-  { id: "cancer", name: "Cancer", symbol: "♋", dateRange: "Jun 21 - Jul 22" },
-  { id: "leo", name: "Leo", symbol: "♌", dateRange: "Jul 23 - Aug 22" },
-  { id: "virgo", name: "Virgo", symbol: "♍", dateRange: "Aug 23 - Sep 22" },
-  { id: "libra", name: "Libra", symbol: "♎", dateRange: "Sep 23 - Oct 22" },
-  { id: "scorpio", name: "Scorpio", symbol: "♏", dateRange: "Oct 23 - Nov 21" },
-  { id: "sagittarius", name: "Sagittarius", symbol: "♐", dateRange: "Nov 22 - Dec 21" },
-  { id: "capricorn", name: "Capricorn", symbol: "♑", dateRange: "Dec 22 - Jan 19" },
-  { id: "aquarius", name: "Aquarius", symbol: "♒", dateRange: "Jan 20 - Feb 18" },
-  { id: "pisces", name: "Pisces", symbol: "♓", dateRange: "Feb 19 - Mar 20" },
+  { id: "aries", name: "Aries", symbol: "♈", icon: TbZodiacAries, dateRange: "Mar 21 - Apr 19" },
+  { id: "taurus", name: "Taurus", symbol: "♉", icon: TbZodiacTaurus, dateRange: "Apr 20 - May 20" },
+  { id: "gemini", name: "Gemini", symbol: "♊", icon: TbZodiacGemini, dateRange: "May 21 - Jun 20" },
+  { id: "cancer", name: "Cancer", symbol: "♋", icon: TbZodiacCancer, dateRange: "Jun 21 - Jul 22" },
+  { id: "leo", name: "Leo", symbol: "♌", icon: TbZodiacLeo, dateRange: "Jul 23 - Aug 22" },
+  { id: "virgo", name: "Virgo", symbol: "♍", icon: TbZodiacVirgo, dateRange: "Aug 23 - Sep 22" },
+  { id: "libra", name: "Libra", symbol: "♎", icon: TbZodiacLibra, dateRange: "Sep 23 - Oct 22" },
+  { id: "scorpio", name: "Scorpio", symbol: "♏", icon: TbZodiacScorpio, dateRange: "Oct 23 - Nov 21" },
+  { id: "sagittarius", name: "Sagittarius", symbol: "♐", icon: TbZodiacSagittarius, dateRange: "Nov 22 - Dec 21" },
+  { id: "capricorn", name: "Capricorn", symbol: "♑", icon: TbZodiacCapricorn, dateRange: "Dec 22 - Jan 19" },
+  { id: "aquarius", name: "Aquarius", symbol: "♒", icon: TbZodiacAquarius, dateRange: "Jan 20 - Feb 18" },
+  { id: "pisces", name: "Pisces", symbol: "♓", icon: TbZodiacPisces, dateRange: "Feb 19 - Mar 20" },
 ];
 
 const Horoscope = () => {
@@ -201,6 +215,7 @@ const Horoscope = () => {
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
           {ZODIAC_SIGNS.map((sign) => {
             const isSelected = sign.id === selectedSign;
+            const SignIcon = sign.icon;
             return (
               <button
                 key={sign.id}
@@ -216,15 +231,15 @@ const Horoscope = () => {
                   <span className="absolute inset-0 bg-indigo-500/10 blur-xl rounded-full"></span>
                 )}
                 
-                <span className={`text-4xl md:text-5xl mb-3 transition-transform duration-500 block ${
+                <span className={`transition-transform duration-500 block ${
                   isSelected 
                     ? "scale-115 rotate-6 text-accent-amber" 
                     : "group-hover:scale-115 group-hover:rotate-6 text-indigo-950/80 group-hover:text-indigo-600"
                 }`}>
-                  {sign.symbol}
+                  <SignIcon className="w-10 h-10 md:w-11 md:h-11 stroke-[1.25]" />
                 </span>
                 
-                <span className={`font-extrabold text-sm tracking-wide ${isSelected ? "text-white" : "text-charcoal-900"}`}>
+                <span className={`font-extrabold text-sm tracking-wide mt-3 ${isSelected ? "text-white" : "text-charcoal-900"}`}>
                   {sign.name}
                 </span>
                 
@@ -296,7 +311,9 @@ const Horoscope = () => {
               <div className="space-y-6">
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-16 rounded-2xl bg-indigo-950 text-accent-amber flex items-center justify-center text-4xl shadow-md border border-indigo-900/35">
-                    {ZODIAC_SIGNS.find((z) => z.id === selectedSign)?.symbol}
+                    {React.createElement(ZODIAC_SIGNS.find((z) => z.id === selectedSign)?.icon || TbZodiacAries, {
+                      className: "w-10 h-10 stroke-[1.25]"
+                    })}
                   </div>
                   <div>
                     <h3 className="font-serif text-2xl font-black text-charcoal-950 uppercase tracking-wide">

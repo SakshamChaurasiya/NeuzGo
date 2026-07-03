@@ -194,7 +194,7 @@ const Home = () => {
       <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-charcoal-200 pb-6 gap-6">
         <div>
           <span className="text-xs font-bold tracking-widest text-accent-blue uppercase mb-1.5 block">
-            Welcome to NeuFeed
+            Welcome to NeuzGo
           </span>
           <h1 className="font-serif text-4xl font-extrabold capitalize text-charcoal-950">
             Top Headlines
