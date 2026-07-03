@@ -26,20 +26,13 @@ const Home = () => {
   const { getNavigationState, setNavigationState } = useNavigationState();
   const savedState = getNavigationState("home") || {};
 
+  // Language is a GLOBAL preference — always read from localStorage, never per-page session.
   const [language, setLanguage] = useState(
-    savedState.language || localStorage.getItem("readingLanguage") || "en"
+    localStorage.getItem("readingLanguage") || "en"
   );
 
-  const isInitialLang = useRef(true);
-  useEffect(() => {
-    localStorage.setItem("readingLanguage", language);
-    if (isInitialLang.current) {
-      isInitialLang.current = false;
-      return;
-    }
-    const langName = LANGUAGES.find((l) => l.code === language)?.name || language;
-    toast.success(`Reading language changed to ${langName}`);
-  }, [language]);
+
+
 
   const [newsFeed, setNewsFeed] = useState(savedState.newsFeed || []);
   const [businessNews, setBusinessNews] = useState(savedState.businessNews || []);
@@ -212,7 +205,13 @@ const Home = () => {
           <FiFilter className="text-charcoal-400 h-4 w-4" />
           <select
             value={language}
-            onChange={(e) => setLanguage(e.target.value)}
+            onChange={(e) => {
+              const newLang = e.target.value;
+              setLanguage(newLang);
+              localStorage.setItem("readingLanguage", newLang);
+              const langName = LANGUAGES.find((l) => l.code === newLang)?.name || newLang;
+              toast.success(`Reading language changed to ${langName}`);
+            }}
             className="bg-white border border-charcoal-200 rounded px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:border-charcoal-900 transition-colors"
             aria-label="Reading Language"
           >

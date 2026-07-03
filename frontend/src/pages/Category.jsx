@@ -37,22 +37,17 @@ const Category = () => {
   const [articles, setArticles] = useState(savedState.articles || []);
   const [loading, setLoading] = useState(!savedState.articles);
 
-  // Filters state
+  // Country is per-category session (user can change per-page)
   const [country, setCountry] = useState(savedState.country || "in");
+
+  // Language is a GLOBAL preference — always read from localStorage, never per-category session.
+  // This ensures switching pages never resets the user's chosen reading language.
   const [language, setLanguage] = useState(
-    savedState.language || localStorage.getItem("readingLanguage") || "en"
+    localStorage.getItem("readingLanguage") || "en"
   );
 
-  const isInitialLang = useRef(true);
-  useEffect(() => {
-    localStorage.setItem("readingLanguage", language);
-    if (isInitialLang.current) {
-      isInitialLang.current = false;
-      return;
-    }
-    const langName = LANGUAGES.find((l) => l.code === language)?.name || language;
-    toast.success(`Reading language changed to ${langName}`);
-  }, [language]);
+
+
 
   // Pagination state
   const [page, setPage] = useState(savedState.page || 1);
@@ -84,6 +79,7 @@ const Category = () => {
         currentSaved.articles &&
         currentSaved.articles.length > 0
       ) {
+        // Restore articles but NEVER restore language from session (it's global via localStorage)
         setArticles(currentSaved.articles);
         setTotalPages(currentSaved.totalPages || 1);
         setHasNext(!!currentSaved.hasNext);
@@ -134,6 +130,14 @@ const Category = () => {
           const fetchedArticles = response.data.data;
           const fetchedTotal = response.data.totalPages || 1;
           const fetchedHasNext = !!response.data.hasNext;
+
+          // If we navigated to a deeper page and got nothing back, go back
+          if (fetchedArticles.length === 0 && page > 1) {
+            toast.error("No more articles available for this category.");
+            setPage((prev) => Math.max(prev - 1, 1));
+            setLoading(false);
+            return;
+          }
 
           setArticles(fetchedArticles);
           setTotalPages(fetchedTotal);
@@ -195,7 +199,13 @@ const Category = () => {
             <FiFilter className="text-charcoal-400 h-4 w-4" />
             <select
               value={language}
-              onChange={(e) => setLanguage(e.target.value)}
+              onChange={(e) => {
+                const newLang = e.target.value;
+                setLanguage(newLang);
+                localStorage.setItem("readingLanguage", newLang);
+                const langName = LANGUAGES.find((l) => l.code === newLang)?.name || newLang;
+                toast.success(`Reading language changed to ${langName}`);
+              }}
               className="bg-white border border-charcoal-200 rounded px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:border-charcoal-900 transition-colors"
               aria-label="Reading Language"
             >
@@ -252,11 +262,11 @@ const Category = () => {
                 <span className="text-charcoal-500">{totalPages}</span>
               </div>
               <button
-                disabled={!hasNext}
+                disabled={!hasNext || loading}
                 onClick={() => setPage((prev) => prev + 1)}
                 className="px-4 py-2 text-xs font-bold border border-charcoal-200 rounded hover:bg-charcoal-50 disabled:opacity-50 transition-colors uppercase tracking-wider"
               >
-                Next
+                {loading ? "Loading…" : "Next"}
               </button>
             </div>
           )}

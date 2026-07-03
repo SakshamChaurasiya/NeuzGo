@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import RootLayout from "./layouts/RootLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ScrollToTop from "./components/ScrollToTop";
 
 // Lazy-loaded pages for optimization and code-splitting
 const Home = lazy(() => import("./pages/Home"));
@@ -32,6 +33,7 @@ const PageSkeleton = () => (
 function App() {
   return (
     <Suspense fallback={<PageSkeleton />}>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<RootLayout />}>
           <Route index element={<Home />} />

@@ -36,10 +36,8 @@ const ArticleCard = ({ article }) => {
     });
   };
 
-  // Fallback high quality image from unsplash
-  const displayImage =
-    article.imageUrl ||
-    "https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=800&q=80";
+  const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=800&q=80";
+  const displayImage = article.imageUrl || FALLBACK_IMAGE;
 
   return (
     <article className="group relative flex flex-col bg-white border border-charcoal-100 rounded-lg overflow-hidden hover:shadow-md transition-all duration-300">
@@ -49,6 +47,10 @@ const ArticleCard = ({ article }) => {
           src={displayImage}
           alt={article.title}
           loading="lazy"
+          onError={(e) => {
+            e.target.onerror = null; // Prevent looping if fallback fails
+            e.target.src = FALLBACK_IMAGE;
+          }}
           className="h-full w-full object-cover object-center group-hover:scale-102 transition-transform duration-300"
         />
         <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-xs px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-charcoal-900 rounded-sm">

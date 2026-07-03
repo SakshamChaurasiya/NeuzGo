@@ -1,37 +1,35 @@
 const News = require("../models/news.model");
-const { fetchTopHeadlines } = require("../service/newsProvider.service");
+const { syncFromAllProviders } = require("../service/providerManager.service");
 
 async function syncNews() {
   const startTime = Date.now();
-  console.log("⏱️ [Cron] News sync started — scope: general/IN/EN/page1");
+  console.log("⏱️ [Cron] News sync started — fetching from all providers (general/IN)");
 
   try {
 
     // ── Calculate Today's Midnight IST in UTC ──────────────────────────────────
     const now = new Date();
-    // Convert current server time to an IST date string
     const istString = now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
     const localIstDate = new Date(istString);
-
-    // Set to midnight local IST time
     localIstDate.setHours(0, 0, 0, 0);
-
-    // Calculate the absolute UTC timestamp for that exact moment
     const istMidnightOffset = localIstDate.getTime() - (5.5 * 60 * 60 * 1000);
-    const fromUtcString = new Date(istMidnightOffset).toISOString(); // e.g., "2026-07-02T18:30:00.000Z"
+    const fromUtcString = new Date(istMidnightOffset).toISOString();
 
-    // ── 1. Fetch from News Provider ─────────────────────────────────────────────
-    console.log("📡 [Cron] Calling News Provider API...");
-    const articles = await fetchTopHeadlines({
+    // ── 1. Fetch from ALL providers (3 requests total, not per-category) ───────
+    // Each provider returns mixed "general/top" news. The category classifier
+    // automatically sorts each article into the correct canonical category.
+    // This keeps API usage at ~72 requests/day across all free tiers.
+    console.log("📡 [Cron] Calling all providers via syncFromAllProviders...");
+    const articles = await syncFromAllProviders({
       page: 1,
       limit: 10,
-      category: "general",
+      category: "general",  // providers return mixed top news; classifier handles sorting
       country: "in",
       language: "en",
-      from: fromUtcString,        // Added time boundary
-      sortby: "publishedAt"      // Added sorting override
+      from: fromUtcString,
+      sortby: "publishedAt",
     });
-    console.log(`✅ [Cron] News Provider returned ${articles.length} articles`);
+    console.log(`✅ [Cron] All providers returned ${articles.length} unique articles after dedup`);
 
     const fetchedCount = articles.length;
     let bulkOps = [];

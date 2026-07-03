@@ -105,8 +105,12 @@ const newsSchema = new mongoose.Schema(
 
 // ─── Compound index ────────────────────────────────────────────────────────────
 // Covers every countDocuments + find query in the controller:
-//   filter: { category, country, language }  sort: { publishedAt: -1 }
-// Makes the DB-first check an index-only operation on any collection size.
+//   filter: { category, country }  sort: { publishedAt: -1 }
+newsSchema.index(
+  { category: 1, country: 1, publishedAt: -1 },
+  { name: "category_country_publishedAt" }
+);
+
 newsSchema.index(
   { category: 1, country: 1, language: 1, publishedAt: -1 },
   { name: "category_country_language_publishedAt" }

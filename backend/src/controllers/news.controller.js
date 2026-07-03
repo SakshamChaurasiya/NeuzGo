@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const News = require("../models/news.model");
-const { fetchTopHeadlines, isGNewsRateLimited, activateRateLimitBackoff } = require("../service/newsProvider.service");
-const newsDataService = require("../service/newsdata.service");
+const { fetchArticles } = require("../service/providerManager.service");
 const translationService = require("../service/translation.service");
 const NewsCursor = mongoose.model("NewsCursor");
 
@@ -106,7 +105,16 @@ async function upsertArticles(articles) {
  * Lazily translates an article card (title and description).
  */
 async function translateArticleCard(article, readingLanguage) {
-  const origLang = article.originalLanguage || article.language || "en";
+  let origLang = article.originalLanguage || article.language || "en";
+  // Normalise invalid stored codes (e.g., "al" from old "all" fetch key) to "en"
+  if (!origLang || origLang.length !== 2 || origLang === "al") origLang = "en";
+
+  // Force translation to English if title contains Hindi (Devanagari) characters
+  const hasDevanagari = /[\u0900-\u097F]/.test(article.title || "");
+  if (hasDevanagari && readingLanguage === "en" && origLang === "en") {
+    origLang = "hi";
+  }
+
   if (readingLanguage === origLang) {
     return article;
   }
@@ -163,7 +171,16 @@ async function translateArticleCard(article, readingLanguage) {
  * Lazily translates the full article details (title, description, content).
  */
 async function translateArticleDetails(article, readingLanguage) {
-  const origLang = article.originalLanguage || article.language || "en";
+  let origLang = article.originalLanguage || article.language || "en";
+  // Normalise invalid stored codes (e.g., "al" from old "all" fetch key) to "en"
+  if (!origLang || origLang.length !== 2 || origLang === "al") origLang = "en";
+
+  // Force translation to English if title contains Hindi (Devanagari) characters
+  const hasDevanagari = /[\u0900-\u097F]/.test(article.title || "");
+  if (hasDevanagari && readingLanguage === "en" && origLang === "en") {
+    origLang = "hi";
+  }
+
   if (readingLanguage === origLang) {
     return article;
   }
@@ -266,32 +283,35 @@ const getNews = async (req, res) => {
     let cachedCount = await News.countDocuments(filter);
     console.log(`[News] 💾 MongoDB has ${cachedCount} matching articles`);
 
-    // ── Step 2: Fetch from Providers only when genuinely needed ───────────────────
+    // ── Step 2: Fetch from Providers only when genuinely needed ──────────────────
+    // providersDepleted: set to true only when ALL providers returned 0 articles
+    // this is the single signal that controls hasNext on the frontend
+    let providersDepleted = false;
+
     if (cachedCount < requiredCount && !search) {
-      console.log(`[News] 📡 DB short by ${requiredCount - cachedCount} — calling News Provider...`);
+      console.log(`[News] 📡 DB short by ${requiredCount - cachedCount} — calling Provider Manager...`);
 
       let currentProviderPage = Math.floor(cachedCount / 10) + 1;
       let fetchedCount = cachedCount;
       let newsDataCursor = null;
       let iterations = 0;
-      const MAX_ITERATIONS = 5; // Prevent runaway requests
+      const MAX_ITERATIONS = 5;
 
       while (fetchedCount < requiredCount && iterations < MAX_ITERATIONS) {
-        // Look up newsDataCursor from DB if it is null and currentProviderPage > 1
+        // Restore newsdata cursor from DB if available for this page
         if (!newsDataCursor && currentProviderPage > 1) {
           const cursorDoc = await NewsCursor.findOne({
-            key: `${category}:${country}:${fetchLanguageKey}:${currentProviderPage - 1}`
+            key: `${category}:${country}:${fetchLanguageKey}:${currentProviderPage - 1}`,
           }).lean();
           if (cursorDoc) {
             newsDataCursor = cursorDoc.cursor;
-            console.log(`[News] 💾 Found NewsData.io cursor in DB for page ${currentProviderPage - 1}: ${newsDataCursor}`);
+            console.log(`[News] 💾 Restored NewsData cursor for page ${currentProviderPage - 1}: ${newsDataCursor}`);
           }
         }
 
-        // Only fetch if GNews isn't rate-limited, OR we're doing NewsData.io cursor stream, OR we haven't fetched this page recently
         const canFetch = newsDataCursor || canCallGNews(category, country, fetchLanguageKey, currentProviderPage);
         if (!canFetch) {
-          console.log(`[News] ⏭️ Page ${currentProviderPage} recently fetched, incrementing page to check next...`);
+          console.log(`[News] ⏭️ Page ${currentProviderPage} recently fetched — skipping`);
           currentProviderPage++;
           iterations++;
           continue;
@@ -299,118 +319,57 @@ const getNews = async (req, res) => {
 
         iterations++;
         try {
-          let fetched = null;
-          let usedNewsData = false;
+          // ProviderManager tries GNews → Currents → NewsData in sequence
+          const fetched = await fetchArticles({
+            page: newsDataCursor || currentProviderPage,
+            limit: 10,
+            category,
+            country,
+            language: fetchLanguageKey,
+          });
 
-          // Try GNews first if not rate limited and we don't have a NewsData cursor
-          if (!isGNewsRateLimited() && !newsDataCursor) {
-            try {
-              console.log(`[News] 📡 Fetching GNews page ${currentProviderPage}...`);
-              fetched = await fetchTopHeadlines({
-                page: currentProviderPage,
-                limit: 10,
-                category,
-                country,
-                language: fetchLanguageKey,
-              });
-            } catch (apiErr) {
-              console.error("[News] ❌ GNews API error:", apiErr.message);
-            }
-          }
-
-          // Fallback to NewsData.io if GNews failed, returned 0 articles, or was skipped
-          if (!fetched || fetched.length === 0) {
-            console.log(`[News] 🔄 Using NewsData.io fallback for page ${currentProviderPage}...`);
-            try {
-              fetched = await newsDataService.fetchTopHeadlines({
-                page: newsDataCursor || currentProviderPage,
-                limit: 10,
-                category,
-                country,
-                language: fetchLanguageKey,
-              });
-              usedNewsData = true;
-            } catch (apiErr) {
-              console.error("[News] ❌ NewsData.io API error:", apiErr.message);
-            }
-          }
-
-          if (fetched && fetched.nextPage) {
+          // Persist newsdata cursor for deep pagination
+          if (fetched.nextPage) {
             newsDataCursor = fetched.nextPage;
-            if (usedNewsData) {
-              await NewsCursor.updateOne(
-                { key: `${category}:${country}:${fetchLanguageKey}:${currentProviderPage}` },
-                { cursor: newsDataCursor },
-                { upsert: true }
-              );
-              console.log(`[News] 💾 Saved NewsData.io cursor for page ${currentProviderPage}`);
-            }
+            await NewsCursor.updateOne(
+              { key: `${category}:${country}:${fetchLanguageKey}:${currentProviderPage}` },
+              { cursor: newsDataCursor },
+              { upsert: true }
+            );
+            console.log(`[News] 💾 Saved cursor for page ${currentProviderPage}`);
           } else {
             newsDataCursor = null;
           }
 
           markFetched(category, country, fetchLanguageKey, currentProviderPage);
 
-          if (fetched && fetched.length > 0) {
-            await upsertArticles(fetched);
-            // Re-count available articles
-            const newCount = await News.countDocuments(filter);
-            console.log(`[News] 💾 After upsert — MongoDB now has ${newCount} articles (was ${fetchedCount})`);
-
-            // If no new unique articles were added, and we didn't use NewsData.io yet, try NewsData.io!
-            if (newCount <= fetchedCount && !usedNewsData) {
-              console.log("[News] ⏹️ GNews returned duplicates. Trying fallback to NewsData.io...");
-              try {
-                fetched = await newsDataService.fetchTopHeadlines({
-                  page: newsDataCursor || currentProviderPage,
-                  limit: 10,
-                  category,
-                  country,
-                  language: fetchLanguageKey,
-                });
-                if (fetched && fetched.length > 0) {
-                  if (fetched.nextPage) {
-                    newsDataCursor = fetched.nextPage;
-                    await NewsCursor.updateOne(
-                      { key: `${category}:${country}:${fetchLanguageKey}:${currentProviderPage}` },
-                      { cursor: newsDataCursor },
-                      { upsert: true }
-                    );
-                    console.log(`[News] 💾 Saved NewsData.io cursor for page ${currentProviderPage}`);
-                  }
-                  await upsertArticles(fetched);
-                  const afterNewsDataCount = await News.countDocuments(filter);
-                  if (afterNewsDataCount > fetchedCount) {
-                    fetchedCount = afterNewsDataCount;
-                    currentProviderPage++;
-                    continue; // successfully got new articles from NewsData.io
-                  }
-                }
-              } catch (err) {
-                console.error("[News] ❌ NewsData.io fallback after GNews duplicates failed:", err.message);
-              }
-            }
-
-            if (newCount <= fetchedCount) {
-              console.log("[News] ⏹️ No new unique articles were added after all attempts. Stopping.");
-              break;
-            }
-            fetchedCount = newCount;
-          } else {
-            console.log(`[News] ⏹️ Provider returned 0 articles at page ${currentProviderPage}`);
+          if (fetched.providersDepleted || fetched.length === 0) {
+            // All providers returned nothing — no point continuing
+            providersDepleted = true;
+            console.log("[News] 🛑 All providers depleted — stopping fetch loop");
             break;
           }
 
+          await upsertArticles(fetched);
+          const newCount = await News.countDocuments(filter);
+          console.log(`[News] 💾 After upsert — MongoDB now has ${newCount} articles (was ${fetchedCount})`);
+
+          if (newCount <= fetchedCount) {
+            console.log("[News] ⏹️ No new unique articles added — stopping");
+            break;
+          }
+
+          fetchedCount = newCount;
           currentProviderPage++;
         } catch (apiErr) {
-          console.error("[News] ❌ News Provider API error in loop:", apiErr.message);
+          console.error("[News] ❌ Provider pipeline error:", apiErr.message);
           break;
         }
       }
     } else if (cachedCount >= requiredCount) {
-      console.log("[News] ✅ Cache hit — serving from MongoDB, no GNews call needed");
+      console.log("[News] ✅ Cache hit — serving from MongoDB");
     } else if (search) {
-      console.log("[News] 🔍 Search query active — skipping GNews, serving DB results only");
+      console.log("[News] 🔍 Search active — serving DB results only");
     }
 
     // ── Step 3: Serve from MongoDB ─────────────────────────────────────────────
@@ -427,9 +386,14 @@ const getNews = async (req, res) => {
     const totalPages = hasNext ? Math.max(Math.ceil(total / limit), page + 1) : Math.ceil(total / limit);
 
     // Lazily translate the articles for card display (title and description only)
-    const translatedArticles = await Promise.all(
-      articles.map((art) => translateArticleCard(art, language))
-    );
+    // Lazily translate the articles for card display sequentially to avoid concurrent rate limits (429)
+    const translatedArticles = [];
+    for (const art of articles) {
+      const trans = await translateArticleCard(art, language);
+      translatedArticles.push(trans);
+      // Pacing delay (10ms)
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    }
 
     console.log(`[News] 📤 Returning ${translatedArticles.length} articles (total: ${total}, hasNext: ${hasNext}, totalPages: ${totalPages})`);
 
