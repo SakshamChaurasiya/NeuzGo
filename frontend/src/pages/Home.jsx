@@ -7,18 +7,22 @@ import ArticleCard from "../components/ArticleCard";
 import HeroSlider from "../components/HeroSlider";
 import { useBookmarks } from "../contexts/BookmarkContext";
 import { useAuth } from "../contexts/AuthContext";
+import { useNavigationState } from "../contexts/NavigationStateContext";
 
 const Home = () => {
-  const [newsFeed, setNewsFeed] = useState([]);
-  const [businessNews, setBusinessNews] = useState([]);
-  const [techNews, setTechNews] = useState([]);
+  const { getNavigationState, setNavigationState } = useNavigationState();
+  const savedState = getNavigationState("home") || {};
+
+  const [newsFeed, setNewsFeed] = useState(savedState.newsFeed || []);
+  const [businessNews, setBusinessNews] = useState(savedState.businessNews || []);
+  const [techNews, setTechNews] = useState(savedState.techNews || []);
   
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [hasNext, setHasNext] = useState(false);
+  const [currentPage, setCurrentPage] = useState(savedState.currentPage || 1);
+  const [totalPages, setTotalPages] = useState(savedState.totalPages || 1);
+  const [hasNext, setHasNext] = useState(savedState.hasNext || false);
   
-  const [loadingFeed, setLoadingFeed] = useState(true);
-  const [loadingSections, setLoadingSections] = useState(true);
+  const [loadingFeed, setLoadingFeed] = useState(!savedState.newsFeed);
+  const [loadingSections, setLoadingSections] = useState(!savedState.businessNews || !savedState.techNews);
 
   const { isBookmarked, addBookmark, removeBookmark } = useBookmarks();
   const { isAuthenticated } = useAuth();
@@ -26,6 +30,25 @@ const Home = () => {
   // Load Main Feed & Pagination
   useEffect(() => {
     const fetchMainFeed = async () => {
+      const currentSaved = getNavigationState("home");
+      if (
+        currentSaved &&
+        currentSaved.currentPage === currentPage &&
+        currentSaved.newsFeed &&
+        currentSaved.newsFeed.length > 0
+      ) {
+        setNewsFeed(currentSaved.newsFeed);
+        setTotalPages(currentSaved.totalPages || 1);
+        setHasNext(!!currentSaved.hasNext);
+        setLoadingFeed(false);
+        if (typeof currentSaved.scrollY === "number") {
+          setTimeout(() => {
+            window.scrollTo({ top: currentSaved.scrollY, behavior: "instant" });
+          }, 50);
+        }
+        return;
+      }
+
       setLoadingFeed(true);
       try {
         const response = await apiClient.get("/news", {
@@ -36,9 +59,20 @@ const Home = () => {
           },
         });
         if (response.data && response.data.success) {
-          setNewsFeed(response.data.data);
-          setTotalPages(response.data.totalPages || 1);
-          setHasNext(!!response.data.hasNext);
+          const fetchedNews = response.data.data;
+          const fetchedTotal = response.data.totalPages || 1;
+          const fetchedHasNext = !!response.data.hasNext;
+
+          setNewsFeed(fetchedNews);
+          setTotalPages(fetchedTotal);
+          setHasNext(fetchedHasNext);
+
+          setNavigationState("home", {
+            newsFeed: fetchedNews,
+            totalPages: fetchedTotal,
+            hasNext: fetchedHasNext,
+            currentPage,
+          });
         }
       } catch (error) {
         console.error("Error loading main news feed:", error);
@@ -48,11 +82,25 @@ const Home = () => {
       }
     };
     fetchMainFeed();
-  }, [currentPage]);
+  }, [currentPage, getNavigationState, setNavigationState]);
 
   // Load Category Previews
   useEffect(() => {
     const fetchCategoryPreviews = async () => {
+      const currentSaved = getNavigationState("home");
+      if (
+        currentSaved &&
+        currentSaved.businessNews &&
+        currentSaved.businessNews.length > 0 &&
+        currentSaved.techNews &&
+        currentSaved.techNews.length > 0
+      ) {
+        setBusinessNews(currentSaved.businessNews);
+        setTechNews(currentSaved.techNews);
+        setLoadingSections(false);
+        return;
+      }
+
       setLoadingSections(true);
       try {
         const [businessRes, techRes] = await Promise.all([
@@ -60,8 +108,18 @@ const Home = () => {
           apiClient.get("/news", { params: { category: "technology", limit: 3 } }),
         ]);
 
-        if (businessRes.data?.success) setBusinessNews(businessRes.data.data);
-        if (techRes.data?.success) setTechNews(techRes.data.data);
+        let updatedState = {};
+        if (businessRes.data?.success) {
+          setBusinessNews(businessRes.data.data);
+          updatedState.businessNews = businessRes.data.data;
+        }
+        if (techRes.data?.success) {
+          setTechNews(techRes.data.data);
+          updatedState.techNews = techRes.data.data;
+        }
+        if (Object.keys(updatedState).length > 0) {
+          setNavigationState("home", updatedState);
+        }
       } catch (error) {
         console.error("Error loading category previews:", error);
       } finally {
@@ -69,7 +127,7 @@ const Home = () => {
       }
     };
     fetchCategoryPreviews();
-  }, []);
+  }, [getNavigationState, setNavigationState]);
 
   const handleBookmarkToggle = async (e, id) => {
     e.preventDefault();

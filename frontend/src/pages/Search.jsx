@@ -1,30 +1,36 @@
-import React, { useEffect, useState, useRef } from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import React, { useEffect, useState, useRef, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { FiSearch, FiX, FiInfo, FiLoader } from "react-icons/fi";
 import apiClient from "../api/client";
 import ArticleCard from "../components/ArticleCard";
+import { useNavigationState } from "../contexts/NavigationStateContext";
 
 const Search = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const queryParam = searchParams.get("q") || "";
 
-  const [searchQuery, setSearchQuery] = useState(queryParam);
+  const { getNavigationState, setNavigationState } = useNavigationState();
+  const savedState = getNavigationState("search") || {};
+
+  const [searchQuery, setSearchQuery] = useState(savedState.searchQuery !== undefined ? savedState.searchQuery : queryParam);
   const [suggestions, setSuggestions] = useState([]);
-  const [results, setResults] = useState([]);
+  const [results, setResults] = useState(savedState.results || []);
   const [loadingResults, setLoadingResults] = useState(false);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   
   // Pagination
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [hasNext, setHasNext] = useState(false);
+  const [page, setPage] = useState(savedState.page || 1);
+  const [totalPages, setTotalPages] = useState(savedState.totalPages || 1);
+  const [hasNext, setHasNext] = useState(savedState.hasNext || false);
 
   const suggestionRef = useRef(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   // Sync state if URL changes directly
   useEffect(() => {
-    setSearchQuery(queryParam);
+    if (!savedState.query || savedState.query !== queryParam || savedState.page !== page) {
+      setSearchQuery(queryParam);
+    }
     if (queryParam) {
       fetchResults(queryParam, page);
     } else {
@@ -32,7 +38,7 @@ const Search = () => {
       setTotalPages(1);
       setHasNext(false);
     }
-  }, [queryParam, page]);
+  }, [queryParam, page, fetchResults, savedState.query, savedState.page]);
 
   // Debounced suggestions handler
   useEffect(() => {
@@ -71,7 +77,27 @@ const Search = () => {
     return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, []);
 
-  const fetchResults = async (searchVal, currentPage) => {
+  const fetchResults = useCallback(async (searchVal, currentPage) => {
+    const currentSaved = getNavigationState("search");
+    if (
+      currentSaved &&
+      currentSaved.query === searchVal &&
+      currentSaved.page === currentPage &&
+      currentSaved.results &&
+      currentSaved.results.length > 0
+    ) {
+      setResults(currentSaved.results);
+      setTotalPages(currentSaved.totalPages || 1);
+      setHasNext(!!currentSaved.hasNext);
+      setLoadingResults(false);
+      if (typeof currentSaved.scrollY === "number") {
+        setTimeout(() => {
+          window.scrollTo({ top: currentSaved.scrollY, behavior: "instant" });
+        }, 50);
+      }
+      return;
+    }
+
     setLoadingResults(true);
     try {
       const response = await apiClient.get("/news", {
@@ -82,9 +108,22 @@ const Search = () => {
         },
       });
       if (response.data && response.data.success) {
-        setResults(response.data.data);
-        setTotalPages(response.data.totalPages || 1);
-        setHasNext(!!response.data.hasNext);
+        const fetchedResults = response.data.data;
+        const fetchedTotal = response.data.totalPages || 1;
+        const fetchedHasNext = !!response.data.hasNext;
+
+        setResults(fetchedResults);
+        setTotalPages(fetchedTotal);
+        setHasNext(fetchedHasNext);
+
+        setNavigationState("search", {
+          results: fetchedResults,
+          totalPages: fetchedTotal,
+          hasNext: fetchedHasNext,
+          page: currentPage,
+          query: searchVal,
+          searchQuery: searchVal,
+        });
       }
     } catch (error) {
       console.error("Error fetching search results:", error);
@@ -94,7 +133,7 @@ const Search = () => {
     } finally {
       setLoadingResults(false);
     }
-  };
+  }, [getNavigationState, setNavigationState]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -117,6 +156,7 @@ const Search = () => {
     setSearchParams({});
     setResults([]);
     setSuggestions([]);
+    clearNavigationState("search");
   };
 
   return (

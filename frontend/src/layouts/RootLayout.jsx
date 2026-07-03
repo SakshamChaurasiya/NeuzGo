@@ -1,15 +1,44 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { useNavigationState } from "../contexts/NavigationStateContext";
+
+const getSessionKey = (pathname) => {
+  if (pathname === "/") return "home";
+  if (pathname.startsWith("/category/")) {
+    const parts = pathname.split("/");
+    const catId = parts[2];
+    return `category-${catId}`;
+  }
+  if (pathname.startsWith("/search")) return "search";
+  return null;
+};
 
 const RootLayout = () => {
-  const { pathname } = useLocation();
+  const location = useLocation();
+  const { pathname } = location;
+  const { getNavigationState, setNavigationState } = useNavigationState();
+  const prevPathnameRef = useRef(pathname);
 
-  // Scroll to top on every route change for clean navigation UX
+  // Scroll handler and scroll-saver on route change
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "instant" });
-  }, [pathname]);
+    const prevPath = prevPathnameRef.current;
+    if (prevPath !== pathname) {
+      const prevKey = getSessionKey(prevPath);
+      if (prevKey) {
+        setNavigationState(prevKey, { scrollY: window.scrollY });
+      }
+      prevPathnameRef.current = pathname;
+    }
+
+    // Only scroll to top if there is no saved scroll position for the destination page
+    const newKey = getSessionKey(pathname);
+    const savedState = newKey ? getNavigationState(newKey) : null;
+    if (!savedState || typeof savedState.scrollY !== "number") {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+  }, [pathname, getNavigationState, setNavigationState]);
 
   return (
     <div className="flex flex-col min-h-screen bg-white">

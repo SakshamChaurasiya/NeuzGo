@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import apiClient from "../api/client";
 import ArticleCard from "../components/ArticleCard";
 import { FiFilter, FiGlobe, FiInfo } from "react-icons/fi";
 import usePrefetch from "../hooks/usePrefetch";
+import { useNavigationState } from "../contexts/NavigationStateContext";
 
 const COUNTRIES = [
   { code: "in", name: "India" },
@@ -23,28 +24,60 @@ const LANGUAGES = [
 
 const Category = () => {
   const { categoryId } = useParams();
-  const [articles, setArticles] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const sessionKey = `category-${categoryId}`;
+  const { getNavigationState, setNavigationState } = useNavigationState();
+
+  const savedState = getNavigationState(sessionKey) || {};
+
+  const [articles, setArticles] = useState(savedState.articles || []);
+  const [loading, setLoading] = useState(!savedState.articles);
 
   // Filters state
-  const [country, setCountry] = useState("in");
-  const [language, setLanguage] = useState("en");
+  const [country, setCountry] = useState(savedState.country || "in");
+  const [language, setLanguage] = useState(savedState.language || "en");
 
   // Pagination state
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [hasNext, setHasNext] = useState(false);
+  const [page, setPage] = useState(savedState.page || 1);
+  const [totalPages, setTotalPages] = useState(savedState.totalPages || 1);
+  const [hasNext, setHasNext] = useState(savedState.hasNext || false);
 
   // Prefetch hook — used to retrieve any pre-warmed data from Navbar hovers (Task 5.1)
   const { getCachedData } = usePrefetch();
 
-  // Reset page when category, country or language changes
+  const isInitial = useRef(true);
+
+  // Reset page when category, country or language changes, skipping initial render to preserve restoration
   useEffect(() => {
+    if (isInitial.current) {
+      isInitial.current = false;
+      return;
+    }
     setPage(1);
   }, [categoryId, country, language]);
 
   useEffect(() => {
     const fetchCategoryArticles = async () => {
+      const currentSaved = getNavigationState(sessionKey);
+      if (
+        currentSaved &&
+        currentSaved.page === page &&
+        currentSaved.country === country &&
+        currentSaved.language === language &&
+        currentSaved.articles &&
+        currentSaved.articles.length > 0
+      ) {
+        setArticles(currentSaved.articles);
+        setTotalPages(currentSaved.totalPages || 1);
+        setHasNext(!!currentSaved.hasNext);
+        setLoading(false);
+        if (typeof currentSaved.scrollY === "number") {
+          setTimeout(() => {
+            window.scrollTo({ top: currentSaved.scrollY, behavior: "instant" });
+          }, 50);
+        }
+        return;
+      }
+
       setLoading(true);
       try {
         // Task 5.1: Check prefetch cache for page 1 before making a network request.
@@ -57,6 +90,14 @@ const Category = () => {
             setTotalPages(cachedData.totalPages || 1);
             setHasNext(!!cachedData.hasNext);
             setLoading(false);
+            setNavigationState(sessionKey, {
+              articles: cachedData.data,
+              totalPages: cachedData.totalPages || 1,
+              hasNext: !!cachedData.hasNext,
+              page,
+              country,
+              language,
+            });
             return; // Skip API call entirely
           }
           console.log(`[Category] 📡 No prefetch cache for "${categoryId}" — fetching from API`);
@@ -72,9 +113,22 @@ const Category = () => {
           },
         });
         if (response.data && response.data.success) {
-          setArticles(response.data.data);
-          setTotalPages(response.data.totalPages || 1);
-          setHasNext(!!response.data.hasNext);
+          const fetchedArticles = response.data.data;
+          const fetchedTotal = response.data.totalPages || 1;
+          const fetchedHasNext = !!response.data.hasNext;
+
+          setArticles(fetchedArticles);
+          setTotalPages(fetchedTotal);
+          setHasNext(fetchedHasNext);
+
+          setNavigationState(sessionKey, {
+            articles: fetchedArticles,
+            totalPages: fetchedTotal,
+            hasNext: fetchedHasNext,
+            page,
+            country,
+            language,
+          });
         }
       } catch (error) {
         console.error("Error loading category news:", error);
@@ -87,7 +141,7 @@ const Category = () => {
     };
 
     fetchCategoryArticles();
-  }, [categoryId, country, language, page, getCachedData]);
+  }, [categoryId, country, language, page, getCachedData, getNavigationState, sessionKey, setNavigationState]);
 
   return (
     <div className="space-y-10">

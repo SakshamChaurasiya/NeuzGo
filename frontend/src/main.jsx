@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { BookmarkProvider } from "./contexts/BookmarkContext";
+import { NavigationStateProvider } from "./contexts/NavigationStateContext";
 import "./index.css";
 import App from "./App.jsx";
 
@@ -11,7 +12,9 @@ createRoot(document.getElementById("root")).render(
     <BrowserRouter>
       <AuthProvider>
         <BookmarkProvider>
-          <App />
+          <NavigationStateProvider>
+            <App />
+          </NavigationStateProvider>
         </BookmarkProvider>
       </AuthProvider>
     </BrowserRouter>
