@@ -2,7 +2,7 @@ const axios = require("axios");
 
 const gnews = axios.create({
     baseURL: "https://gnews.io/api/v4",
-    timeout: 10000,
+    timeout: 20000,
     params: {
         apikey: process.env.GNEWS_API_KEY,
     },

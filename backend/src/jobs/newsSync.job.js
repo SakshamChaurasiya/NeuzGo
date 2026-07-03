@@ -1,13 +1,13 @@
 const News = require("../models/news.model");
-const { fetchTopHeadlines } = require("../service/gnews.service");
+const { fetchTopHeadlines } = require("../service/newsProvider.service");
 
 async function syncNews() {
   const startTime = Date.now();
   console.log("⏱️ [Cron] News sync started — scope: general/IN/EN/page1");
 
   try {
-    // ── 1. Fetch from GNews ────────────────────────────────────────────────────
-    console.log("📡 [Cron] Calling GNews API...");
+    // ── 1. Fetch from News Provider ─────────────────────────────────────────────
+    console.log("📡 [Cron] Calling News Provider API...");
     const articles = await fetchTopHeadlines({
       page: 1,
       limit: 10,
@@ -15,12 +15,12 @@ async function syncNews() {
       country: "in",
       language: "en",
     });
-    console.log(`✅ [Cron] GNews returned ${articles.length} articles`);
+    console.log(`✅ [Cron] News Provider returned ${articles.length} articles`);
 
     const fetchedCount = articles.length;
 
     if (fetchedCount === 0) {
-      console.log("⚠️ [Cron] No articles returned from GNews — skipping upsert");
+      console.log("⚠️ [Cron] No articles returned from News Provider — skipping upsert");
     } else {
       // ── 2. Retrieve existing records for change detection ──────────────────
       const articleUrls = articles.map((a) => a.articleUrl);
@@ -114,9 +114,9 @@ async function syncNews() {
     console.log(`   Duration : ${duration}ms`);
 
   } catch (error) {
-    // Detect GNews 429 specifically so it shows up clearly in logs
+    // Detect 429 specifically so it shows up clearly in logs
     if (error.response?.status === 429) {
-      console.error("❌ [Cron] GNews rate limit hit (HTTP 429) — will retry on next scheduled run");
+      console.error("❌ [Cron] Provider rate limit hit (HTTP 429) — will retry on next scheduled run");
     } else {
       console.error("❌ [Cron] News sync error:", error.message);
     }

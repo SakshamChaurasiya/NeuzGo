@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { FiCalendar, FiUser, FiBookmark, FiShare2, FiArrowLeft, FiArrowUp } from "react-icons/fi";
 import { FaBookmark } from "react-icons/fa";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import apiClient from "../api/client";
 import ArticleCard from "../components/ArticleCard";
 import { useBookmarks } from "../contexts/BookmarkContext";
@@ -273,9 +273,6 @@ const ArticleDetails = () => {
           <FiArrowUp className="h-5 w-5" />
         </button>
       )}
-
-      {/* Toaster element for react-hot-toast notifications */}
-      <Toaster position="bottom-right" />
     </>
   );
 };

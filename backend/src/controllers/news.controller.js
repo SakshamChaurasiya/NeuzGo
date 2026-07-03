@@ -1,5 +1,5 @@
 const News = require("../models/news.model");
-const { fetchTopHeadlines } = require("../service/gnews.service");
+const { fetchTopHeadlines, isGNewsRateLimited, activateRateLimitBackoff } = require("../service/newsProvider.service");
 
 // ─── Configuration ─────────────────────────────────────────────────────────────
 const CONFIG = {
@@ -13,50 +13,28 @@ const CONFIG = {
 
   /**
    * In-process deduplication window (ms).
-   * Prevents duplicate GNews calls for the same combination within 15 minutes.
-   * Resets on process restart — intentional, covered by rateLimitedUntil below.
+   * Prevents duplicate calls for the same combination within 15 minutes.
    */
   DEDUP_WINDOW_MS: 15 * 60 * 1000,
-
-  /**
-   * How long to back off after receiving HTTP 429 from GNews (ms).
-   * 1 hour gives the quota window time to recover.
-   */
-  RATE_LIMIT_BACKOFF_MS: 60 * 60 * 1000,
 };
-
-// ─── Durable rate-limit flag ──────────────────────────────────────────────────
-// When GNews returns 429 this timestamp is set to Date.now() + BACKOFF.
-// Every subsequent GNews call checks this first and skips the API call if
-// we are still within the backoff window. Survives across requests (module-scope).
-let rateLimitedUntil = 0;
 
 // ─── Request deduplication map ────────────────────────────────────────────────
 // Key: "category:country:language"  Value: timestamp of last successful fetch
 const recentFetches = new Map();
 
 /**
- * Returns true if a GNews API call is allowed for this combination.
- * Returns false if:
- *   - We are still within the 1-hour rate-limit backoff, OR
- *   - The same combination was fetched within the last 15 minutes.
+ * Returns true if a provider API call is allowed for this combination.
+ * Returns false if the same combination was fetched within the last 15 minutes.
  */
 function canCallGNews(category, country, language) {
   const now = Date.now();
-
-  // Global rate-limit backoff (survives request boundaries)
-  if (now < rateLimitedUntil) {
-    const remainingMin = Math.ceil((rateLimitedUntil - now) / 60000);
-    console.log(`[GNews] 🚫 Rate-limit backoff active — skipping API call (${remainingMin} min remaining)`);
-    return false;
-  }
 
   // Per-combination deduplication
   const key = `${category}:${country}:${language}`;
   const lastFetch = recentFetches.get(key);
   if (lastFetch && now - lastFetch < CONFIG.DEDUP_WINDOW_MS) {
     const secAgo = Math.floor((now - lastFetch) / 1000);
-    console.log(`[GNews] ⏭️ Dedup hit for "${key}" — fetched ${secAgo}s ago, skipping`);
+    console.log(`[News] ⏭️ Dedup hit for "${key}" — fetched ${secAgo}s ago, skipping`);
     return false;
   }
 
@@ -68,12 +46,6 @@ function markFetched(category, country, language) {
   recentFetches.set(`${category}:${country}:${language}`, Date.now());
 }
 
-/** Activate the global rate-limit backoff. */
-function activateRateLimitBackoff() {
-  rateLimitedUntil = Date.now() + CONFIG.RATE_LIMIT_BACKOFF_MS;
-  const until = new Date(rateLimitedUntil).toISOString();
-  console.warn(`[GNews] ⚠️ HTTP 429 received — GNews calls suppressed until ${until}`);
-}
 
 // Periodic cleanup of the dedup map to prevent unbounded memory growth
 setInterval(() => {
@@ -156,7 +128,7 @@ const getNews = async (req, res) => {
     // ── Step 2: Fetch from GNews only when genuinely needed ───────────────────
     // Condition: DB is short AND we haven't recently fetched AND not rate-limited
     if (cachedCount < requiredCount && !search && canCallGNews(category, country, language)) {
-      console.log(`[News] 📡 DB short by ${requiredCount - cachedCount} — calling GNews (page=1 only)...`);
+      console.log(`[News] 📡 DB short by ${requiredCount - cachedCount} — calling News Provider (page=1 only)...`);
 
       try {
         const fetched = await fetchTopHeadlines({
@@ -175,14 +147,10 @@ const getNews = async (req, res) => {
           cachedCount = await News.countDocuments(filter);
           console.log(`[News] ✅ After upsert — MongoDB now has ${cachedCount} matching articles`);
         } else {
-          console.log("[News] ⚠️ GNews returned 0 articles");
+          console.log("[News] ⚠️ News Provider returned 0 articles");
         }
       } catch (apiErr) {
-        if (apiErr.response?.status === 429) {
-          activateRateLimitBackoff();
-        } else {
-          console.error("[News] ❌ GNews API error:", apiErr.message);
-        }
+        console.error("[News] ❌ News Provider API error:", apiErr.message);
         // Graceful degradation — fall through and serve from DB
       }
     } else if (cachedCount >= requiredCount) {
