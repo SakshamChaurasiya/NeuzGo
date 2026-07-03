@@ -12,9 +12,11 @@ NeuzGo is designed to offer a premium reading experience, robust user management
 | | Protected routing to secure private pages like Bookmarks and Profile. | ✅ |
 | | Session validation on application load via `/api/auth/me`. | ✅ |
 | **News Synchronization** | Automated `node-cron` job running periodically to fetch from GNews. | ✅ |
+| | Fallback provider using NewsData.io API if primary fetch fails. | ✅ |
+| | Intelligent News Refresh (configurable cache freshness, background sync). | ✅ |
 | | Bulk write operations to MongoDB to sync and update articles. | ✅ |
 | | Cleanup mechanism for deleting articles older than 30 days. | ✅ |
-| | Robust error handling, logging, and rate limit strategies for GNews API. | ✅ |
+| | Robust error handling, logging, and rate limit strategies. | ✅ |
 | **Home Page** | Dynamic Hero Slider for top news stories with auto-advance and crossfade. | ✅ |
 | | "Breaking News" scrolling ticker using custom CSS marquee. | ✅ |
 | | "Trending Headlines" sidebar for quick access to popular stories. | ✅ |
@@ -22,7 +24,7 @@ NeuzGo is designed to offer a premium reading experience, robust user management
 | | Server-side pagination for infinite scrolling/page navigation. | ✅ |
 | **Search & Filtering** | Live, debounced search bar with a dropdown for instant suggestions. | ✅ |
 | | Full Search Results page with pagination. | ✅ |
-| | Category pages with dynamic filtering by Country and Language. | ✅ |
+| | Category pages with dynamic filtering by Country and Language (includes Hindi). | ✅ |
 | **Article Reading Experience**| Premium, distraction-free article layout using elegant typography. | ✅ |
 | | Reading progress tracker bar at the top of the article. | ✅ |
 | | Social share links (Twitter, LinkedIn, Facebook, Direct Link). | ✅ |

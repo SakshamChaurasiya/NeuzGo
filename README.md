@@ -43,6 +43,7 @@ Follow these steps to run NeuzGo on your local machine:
 - Node.js (v16 or higher recommended)
 - MongoDB running locally or a MongoDB Atlas connection string
 - A GNews API Key for fetching news data
+- A NewsData.io API Key for fallback news fetching
 
 ### 1. Clone the repository
 ```bash
@@ -62,6 +63,7 @@ PORT=5000
 MONGODB_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret_key
 GNEWS_API_KEY=your_gnews_api_key
+NEWSDATA_API_KEY=your_newsdata_api_key
 ```
 
 Start the backend development server:
