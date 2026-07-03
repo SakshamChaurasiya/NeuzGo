@@ -103,6 +103,37 @@ const ArticleDetails = () => {
     });
   };
 
+  const renderContent = (content) => {
+    if (!content) return null;
+    const charsPattern = /\s*\[\+?\d+\s+chars\]\s*$/i;
+    const paragraphs = content.split("\n\n");
+    return paragraphs.map((para, idx) => {
+      const isLastParagraph = idx === paragraphs.length - 1;
+      if (isLastParagraph && charsPattern.test(para)) {
+        const cleanedPara = para.replace(charsPattern, "");
+        return (
+          <p key={idx}>
+            {cleanedPara}
+            {article.articleUrl && (
+              <>
+                {" "}
+                <a
+                  href={article.articleUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-accent-blue hover:underline font-semibold"
+                >
+                  read more here
+                </a>
+              </>
+            )}
+          </p>
+        );
+      }
+      return <p key={idx}>{para}</p>;
+    });
+  };
+
   if (loading) {
     return (
       <div className="max-w-article mx-auto px-4 py-8 space-y-6 animate-pulse">
@@ -233,9 +264,7 @@ const ArticleDetails = () => {
             {/* Article Content Body (High-quality serif font, comfortable spacing) */}
             <div className="font-serif text-lg text-charcoal-850 leading-loose space-y-6 pt-4">
               {article.content ? (
-                article.content.split("\n\n").map((para, idx) => (
-                  <p key={idx}>{para}</p>
-                ))
+                renderContent(article.content)
               ) : (
                 <p>
                   Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ut convallis ex, id euismod ex. Pellentesque quis sodales ex. Aliquam elementum, urna et porttitor hendrerit, neque felis hendrerit nunc, sit amet euismod elit eros et arcu. Mauris id arcu nec eros imperdiet molestie. Sed imperdiet ex dolor, in sollicitudin est molestie ut.

@@ -26,57 +26,6 @@ const Search = () => {
   const suggestionRef = useRef(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  // Sync state if URL changes directly
-  useEffect(() => {
-    if (!savedState.query || savedState.query !== queryParam || savedState.page !== page) {
-      setSearchQuery(queryParam);
-    }
-    if (queryParam) {
-      fetchResults(queryParam, page);
-    } else {
-      setResults([]);
-      setTotalPages(1);
-      setHasNext(false);
-    }
-  }, [queryParam, page, fetchResults, savedState.query, savedState.page]);
-
-  // Debounced suggestions handler
-  useEffect(() => {
-    if (!searchQuery.trim()) {
-      setSuggestions([]);
-      return;
-    }
-
-    const delayDebounce = setTimeout(async () => {
-      setLoadingSuggestions(true);
-      try {
-        const response = await apiClient.get("/news", {
-          params: { search: searchQuery, limit: 5 },
-        });
-        if (response.data && response.data.success) {
-          setSuggestions(response.data.data);
-        }
-      } catch (error) {
-        console.error("Error fetching suggestions:", error);
-      } finally {
-        setLoadingSuggestions(false);
-      }
-    }, 300);
-
-    return () => clearTimeout(delayDebounce);
-  }, [searchQuery]);
-
-  // Close suggestions dropdown when clicking outside
-  useEffect(() => {
-    const handleOutsideClick = (e) => {
-      if (suggestionRef.current && !suggestionRef.current.contains(e.target)) {
-        setShowSuggestions(false);
-      }
-    };
-    document.addEventListener("mousedown", handleOutsideClick);
-    return () => document.removeEventListener("mousedown", handleOutsideClick);
-  }, []);
-
   const fetchResults = useCallback(async (searchVal, currentPage) => {
     const currentSaved = getNavigationState("search");
     if (
@@ -134,6 +83,57 @@ const Search = () => {
       setLoadingResults(false);
     }
   }, [getNavigationState, setNavigationState]);
+
+  // Sync state if URL changes directly
+  useEffect(() => {
+    if (!savedState.query || savedState.query !== queryParam || savedState.page !== page) {
+      setSearchQuery(queryParam);
+    }
+    if (queryParam) {
+      fetchResults(queryParam, page);
+    } else {
+      setResults([]);
+      setTotalPages(1);
+      setHasNext(false);
+    }
+  }, [queryParam, page, fetchResults, savedState.query, savedState.page]);
+
+  // Debounced suggestions handler
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSuggestions([]);
+      return;
+    }
+
+    const delayDebounce = setTimeout(async () => {
+      setLoadingSuggestions(true);
+      try {
+        const response = await apiClient.get("/news", {
+          params: { search: searchQuery, limit: 5 },
+        });
+        if (response.data && response.data.success) {
+          setSuggestions(response.data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching suggestions:", error);
+      } finally {
+        setLoadingSuggestions(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(delayDebounce);
+  }, [searchQuery]);
+
+  // Close suggestions dropdown when clicking outside
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (suggestionRef.current && !suggestionRef.current.contains(e.target)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
