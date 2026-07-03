@@ -1,5 +1,5 @@
 const gnewsService = require("./gnews.service");
-const newsApiService = require("./newsapi.service");
+const newsDataService = require("./newsdata.service");
 
 let rateLimitedUntil = 0;
 const RATE_LIMIT_BACKOFF_MS = 60 * 60 * 1000;
@@ -39,20 +39,20 @@ const fetchTopHeadlines = async (params) => {
       } else {
         console.error("[NewsProvider] ❌ GNews API error:", error.message);
       }
-      console.log("[NewsProvider] 🔄 Initiating fallback to NewsAPI...");
+      console.log("[NewsProvider] 🔄 Initiating fallback to NewsData.io...");
     }
   } else {
     const remainingMin = Math.ceil((rateLimitedUntil - Date.now()) / 60000);
-    console.log(`[NewsProvider] ⏭️ GNews is rate limited (${remainingMin} min remaining) — skipping GNews, calling NewsAPI`);
+    console.log(`[NewsProvider] ⏭️ GNews is rate limited (${remainingMin} min remaining) — skipping GNews, calling NewsData.io`);
   }
 
-  // Fallback to NewsAPI
+  // Fallback to NewsData.io
   try {
-    console.log("[NewsProvider] 📡 Trying NewsAPI...");
-    const articles = await newsApiService.fetchTopHeadlines(params);
+    console.log("[NewsProvider] 📡 Trying NewsData.io...");
+    const articles = await newsDataService.fetchTopHeadlines(params);
     return articles;
   } catch (error) {
-    console.error("[NewsProvider] ❌ NewsAPI API error:", error.message);
+    console.error("[NewsProvider] ❌ NewsData.io API error:", error.message);
     throw error;
   }
 };

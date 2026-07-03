@@ -99,12 +99,12 @@ async function upsertArticles(articles) {
  */
 const getNews = async (req, res) => {
   try {
-    const page     = Math.max(1, Number(req.query.page)  || 1);
-    const limit    = Math.max(1, Number(req.query.limit) || CONFIG.DEFAULT_PAGE_LIMIT);
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.max(1, Number(req.query.limit) || CONFIG.DEFAULT_PAGE_LIMIT);
     const category = req.query.category || CONFIG.DEFAULT_CATEGORY;
-    const country  = req.query.country  || CONFIG.DEFAULT_COUNTRY;
+    const country = req.query.country || CONFIG.DEFAULT_COUNTRY;
     const language = req.query.language || CONFIG.DEFAULT_LANGUAGE;
-    const search   = req.query.search   || "";
+    const search = req.query.search || "";
 
     const skip = (page - 1) * limit;
 
@@ -112,9 +112,9 @@ const getNews = async (req, res) => {
     const filter = { category, country, language };
     if (search) {
       filter.$or = [
-        { title:       { $regex: search, $options: "i" } },
+        { title: { $regex: search, $options: "i" } },
         { description: { $regex: search, $options: "i" } },
-        { content:     { $regex: search, $options: "i" } },
+        { content: { $regex: search, $options: "i" } },
       ];
     }
 
@@ -172,12 +172,12 @@ const getNews = async (req, res) => {
     console.log(`[News] 📤 Returning ${articles.length} articles (total: ${total})`);
 
     return res.status(200).json({
-      success:    true,
+      success: true,
       page,
       limit,
       total,
       totalPages: Math.ceil(total / limit) || 1,
-      data:       articles,
+      data: articles,
     });
 
   } catch (err) {
