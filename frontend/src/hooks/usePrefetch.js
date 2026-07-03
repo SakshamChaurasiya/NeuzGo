@@ -25,7 +25,9 @@ const PREFETCH_CONFIG = {
   /**
    * Default language filter applied during prefetch.
    */
-  DEFAULT_LANGUAGE: "en",
+  get DEFAULT_LANGUAGE() {
+    return localStorage.getItem("readingLanguage") || "en";
+  },
 
   /**
    * Maximum age (ms) for cached prefetch data before it is considered stale.

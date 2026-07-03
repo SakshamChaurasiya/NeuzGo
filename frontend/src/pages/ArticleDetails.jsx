@@ -8,6 +8,32 @@ import ArticleCard from "../components/ArticleCard";
 import { useBookmarks } from "../contexts/BookmarkContext";
 import { useAuth } from "../contexts/AuthContext";
 
+const languageNames = {
+  en: "English",
+  hi: "Hindi",
+  ta: "Tamil",
+  te: "Telugu",
+  bn: "Bengali",
+  mr: "Marathi",
+  es: "Spanish",
+  fr: "French",
+  de: "German"
+};
+const getLanguageName = (code) => languageNames[code] || String(code).toUpperCase();
+
+const readMoreLabels = {
+  en: "read more here",
+  hi: "और पढ़ें",
+  ta: "மேலும் படிக்க",
+  te: "మరింత చదవండి",
+  bn: "আরও পড়ুন",
+  mr: "अधिक वाचा",
+  es: "leer más aquí",
+  fr: "lire la suite ici",
+  de: "hier weiterlesen"
+};
+const getReadMoreLabel = (code) => readMoreLabels[code] || "read more here";
+
 const ArticleDetails = () => {
   const { id } = useParams();
   const [article, setArticle] = useState(null);
@@ -44,14 +70,17 @@ const ArticleDetails = () => {
     const fetchDetails = async () => {
       setLoading(true);
       try {
-        const response = await apiClient.get(`/news/${id}`);
+        const readingLang = localStorage.getItem("readingLanguage") || "en";
+        const response = await apiClient.get(`/news/${id}`, {
+          params: { language: readingLang }
+        });
         if (response.data && response.data.success) {
           const art = response.data.data;
           setArticle(art);
           
-          // Fetch related articles in the same category
+          // Fetch related articles in the same category, translating them too
           const relatedRes = await apiClient.get("/news", {
-            params: { category: art.category, limit: 4 },
+            params: { category: art.category, limit: 4, language: readingLang },
           });
           if (relatedRes.data && relatedRes.data.success) {
             // Exclude current article
@@ -105,7 +134,8 @@ const ArticleDetails = () => {
 
   const renderContent = (content) => {
     if (!content) return null;
-    const charsPattern = /\s*\[\+?\d+\s+chars\]\s*$/i;
+    // Matches bracket suffixes in any language (e.g., [+467 chars], [+467 caracteres], [+467 वर्ण])
+    const charsPattern = /\s*\[\+?\d+\s+[^\]]+\]\s*$/i;
     const paragraphs = content.split("\n\n");
     return paragraphs.map((para, idx) => {
       const isLastParagraph = idx === paragraphs.length - 1;
@@ -121,9 +151,9 @@ const ArticleDetails = () => {
                   href={article.articleUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-accent-blue hover:underline font-semibold"
+                  className="text-accent-blue hover:underline font-semibold text-xs"
                 >
-                  read more here
+                  {getReadMoreLabel(article.language || "en")}
                 </a>
               </>
             )}
@@ -189,6 +219,15 @@ const ArticleDetails = () => {
             <h1 className="font-serif text-3xl sm:text-5xl font-extrabold text-charcoal-950 leading-tight">
               {article.title}
             </h1>
+
+            {article.originalLanguage && article.language && article.originalLanguage !== article.language && (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-charcoal-50 border border-charcoal-150 rounded text-xs text-charcoal-600 font-medium">
+                <span className="w-1.5 h-1.5 bg-accent-blue rounded-full"></span>
+                Original: <span className="font-semibold">{getLanguageName(article.originalLanguage)}</span>
+                <span className="text-charcoal-300">|</span>
+                Translated to: <span className="font-semibold">{getLanguageName(article.language)}</span>
+              </div>
+            )}
 
             {/* Author, Date & Actions Info */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-y border-charcoal-100 gap-4">

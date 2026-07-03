@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const News = require("../models/news.model");
 const { fetchTopHeadlines, isGNewsRateLimited, activateRateLimitBackoff } = require("../service/newsProvider.service");
 const newsDataService = require("../service/newsdata.service");
+const translationService = require("../service/translation.service");
 const NewsCursor = mongoose.model("NewsCursor");
 
 
@@ -101,6 +102,136 @@ async function upsertArticles(articles) {
  * GNews is ALWAYS called with page=1 only.
  * MongoDB handles all pagination — GNews page > 1 is not used on the free tier.
  */
+/**
+ * Lazily translates an article card (title and description).
+ */
+async function translateArticleCard(article, readingLanguage) {
+  const origLang = article.originalLanguage || article.language || "en";
+  if (readingLanguage === origLang) {
+    return article;
+  }
+
+  // Check if translation is cached
+  const cached = article.translations?.find((t) => t.language === readingLanguage);
+  if (cached) {
+    return {
+      ...article,
+      title: cached.title,
+      description: cached.description,
+      language: readingLanguage,
+    };
+  }
+
+  const origTitle = article.originalTitle || article.title;
+  const origDesc = article.originalDescription || article.description || "";
+
+  const translated = await translationService.translateFields(
+    origTitle,
+    origDesc,
+    readingLanguage,
+    origLang
+  );
+
+  // Cache in DB
+  try {
+    await News.updateOne(
+      { _id: article._id },
+      {
+        $push: {
+          translations: {
+            language: readingLanguage,
+            title: translated.title,
+            description: translated.description,
+            content: "",
+          },
+        },
+      }
+    );
+  } catch (err) {
+    console.error(`[News] ❌ Failed to cache card translation for ${article._id}:`, err.message);
+  }
+
+  return {
+    ...article,
+    title: translated.title,
+    description: translated.description,
+    language: readingLanguage,
+  };
+}
+
+/**
+ * Lazily translates the full article details (title, description, content).
+ */
+async function translateArticleDetails(article, readingLanguage) {
+  const origLang = article.originalLanguage || article.language || "en";
+  if (readingLanguage === origLang) {
+    return article;
+  }
+
+  const cached = article.translations?.find((t) => t.language === readingLanguage);
+  if (cached && cached.content) {
+    return {
+      ...article,
+      title: cached.title,
+      description: cached.description,
+      content: cached.content,
+      language: readingLanguage,
+    };
+  }
+
+  const origTitle = article.originalTitle || article.title;
+  const origDesc = article.originalDescription || article.description || "";
+  const origContent = article.originalContent || article.content || "";
+
+  const translated = await translationService.translateFullArticle(
+    origTitle,
+    origDesc,
+    origContent,
+    readingLanguage,
+    origLang
+  );
+
+  try {
+    const hasLang = article.translations?.some((t) => t.language === readingLanguage);
+    if (hasLang) {
+      await News.updateOne(
+        { _id: article._id, "translations.language": readingLanguage },
+        {
+          $set: {
+            "translations.$.title": translated.title,
+            "translations.$.description": translated.description,
+            "translations.$.content": translated.content,
+          },
+        }
+      );
+    } else {
+      await News.updateOne(
+        { _id: article._id },
+        {
+          $push: {
+            translations: {
+              language: readingLanguage,
+              title: translated.title,
+              description: translated.description,
+              content: translated.content,
+            },
+          },
+        }
+      );
+    }
+  } catch (err) {
+    console.error(`[News] ❌ Failed to cache full translation for ${article._id}:`, err.message);
+  }
+
+  return {
+    ...article,
+    title: translated.title,
+    description: translated.description,
+    content: translated.content,
+    language: readingLanguage,
+  };
+}
+
 const getNews = async (req, res) => {
   try {
     const page = Math.max(1, Number(req.query.page) || 1);
@@ -112,13 +243,19 @@ const getNews = async (req, res) => {
 
     const skip = (page - 1) * limit;
 
-    // Build filter
-    const filter = { category, country, language };
+    // Use "all" as standard cache/fetch key for provider requests and cursors
+    // to prevent fetching duplicate articles for different reading languages.
+    const fetchLanguageKey = "all";
+
+    // Build filter - no language constraint to maximize news coverage
+    const filter = { category, country };
     if (search) {
       filter.$or = [
         { title: { $regex: search, $options: "i" } },
         { description: { $regex: search, $options: "i" } },
         { content: { $regex: search, $options: "i" } },
+        { "translations.title": { $regex: search, $options: "i" } },
+        { "translations.description": { $regex: search, $options: "i" } },
       ];
     }
 
@@ -143,7 +280,7 @@ const getNews = async (req, res) => {
         // Look up newsDataCursor from DB if it is null and currentProviderPage > 1
         if (!newsDataCursor && currentProviderPage > 1) {
           const cursorDoc = await NewsCursor.findOne({
-            key: `${category}:${country}:${language}:${currentProviderPage - 1}`
+            key: `${category}:${country}:${fetchLanguageKey}:${currentProviderPage - 1}`
           }).lean();
           if (cursorDoc) {
             newsDataCursor = cursorDoc.cursor;
@@ -152,7 +289,7 @@ const getNews = async (req, res) => {
         }
 
         // Only fetch if GNews isn't rate-limited, OR we're doing NewsData.io cursor stream, OR we haven't fetched this page recently
-        const canFetch = newsDataCursor || canCallGNews(category, country, language, currentProviderPage);
+        const canFetch = newsDataCursor || canCallGNews(category, country, fetchLanguageKey, currentProviderPage);
         if (!canFetch) {
           console.log(`[News] ⏭️ Page ${currentProviderPage} recently fetched, incrementing page to check next...`);
           currentProviderPage++;
@@ -174,7 +311,7 @@ const getNews = async (req, res) => {
                 limit: 10,
                 category,
                 country,
-                language,
+                language: fetchLanguageKey,
               });
             } catch (apiErr) {
               console.error("[News] ❌ GNews API error:", apiErr.message);
@@ -190,7 +327,7 @@ const getNews = async (req, res) => {
                 limit: 10,
                 category,
                 country,
-                language,
+                language: fetchLanguageKey,
               });
               usedNewsData = true;
             } catch (apiErr) {
@@ -202,7 +339,7 @@ const getNews = async (req, res) => {
             newsDataCursor = fetched.nextPage;
             if (usedNewsData) {
               await NewsCursor.updateOne(
-                { key: `${category}:${country}:${language}:${currentProviderPage}` },
+                { key: `${category}:${country}:${fetchLanguageKey}:${currentProviderPage}` },
                 { cursor: newsDataCursor },
                 { upsert: true }
               );
@@ -212,7 +349,7 @@ const getNews = async (req, res) => {
             newsDataCursor = null;
           }
 
-          markFetched(category, country, language, currentProviderPage);
+          markFetched(category, country, fetchLanguageKey, currentProviderPage);
 
           if (fetched && fetched.length > 0) {
             await upsertArticles(fetched);
@@ -229,13 +366,13 @@ const getNews = async (req, res) => {
                   limit: 10,
                   category,
                   country,
-                  language,
+                  language: fetchLanguageKey,
                 });
                 if (fetched && fetched.length > 0) {
                   if (fetched.nextPage) {
                     newsDataCursor = fetched.nextPage;
                     await NewsCursor.updateOne(
-                      { key: `${category}:${country}:${language}:${currentProviderPage}` },
+                      { key: `${category}:${country}:${fetchLanguageKey}:${currentProviderPage}` },
                       { cursor: newsDataCursor },
                       { upsert: true }
                     );
@@ -289,7 +426,12 @@ const getNews = async (req, res) => {
     const hasNext = articles.length === limit;
     const totalPages = hasNext ? Math.max(Math.ceil(total / limit), page + 1) : Math.ceil(total / limit);
 
-    console.log(`[News] 📤 Returning ${articles.length} articles (total: ${total}, hasNext: ${hasNext}, totalPages: ${totalPages})`);
+    // Lazily translate the articles for card display (title and description only)
+    const translatedArticles = await Promise.all(
+      articles.map((art) => translateArticleCard(art, language))
+    );
+
+    console.log(`[News] 📤 Returning ${translatedArticles.length} articles (total: ${total}, hasNext: ${hasNext}, totalPages: ${totalPages})`);
 
     return res.status(200).json({
       success: true,
@@ -299,7 +441,7 @@ const getNews = async (req, res) => {
       totalPages,
       hasNext,
       hasPrevious: page > 1,
-      data: articles,
+      data: translatedArticles,
     });
 
   } catch (err) {
@@ -326,9 +468,12 @@ const getNewsById = async (req, res) => {
       });
     }
 
+    const readingLanguage = req.query.language || CONFIG.DEFAULT_LANGUAGE;
+    const translatedArticle = await translateArticleDetails(article, readingLanguage);
+
     return res.status(200).json({
       success: true,
-      data: article,
+      data: translatedArticle,
     });
   } catch (err) {
     return res.status(500).json({

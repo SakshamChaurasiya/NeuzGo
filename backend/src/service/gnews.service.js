@@ -11,26 +11,16 @@ const fetchTopHeadlines = async ({
 }) => {
     console.log("🌍 Calling GNews API...");
     // Explicitly build params object to avoid sending undefined values
+    // lang parameter is omitted to fetch widest possible news coverage
     const queryParams = {
         page,
         max: limit,
         category,
         country,
-        lang: language,
     };
 
     if (from) queryParams.from = from;
     if (sortby) queryParams.sortby = sortby;
-
-    // const { data } = await gnews.get("/top-headlines", {
-    //     params: {
-    //         page,
-    //         max: limit,
-    //         category,
-    //         country,
-    //         lang: language,
-    //     },
-    // });
 
     const { data } = await gnews.get("/top-headlines", {
         params: queryParams,
@@ -48,40 +38,48 @@ const fetchTopHeadlines = async ({
 
 };
 
+function cleanLanguageCode(lang) {
+  if (!lang) return "en";
+  const l = String(lang).toLowerCase().trim();
+  if (l.startsWith("en") || l === "english") return "en";
+  if (l.startsWith("hi") || l === "hindi") return "hi";
+  if (l.startsWith("es") || l === "spanish") return "es";
+  if (l.startsWith("fr") || l === "french") return "fr";
+  if (l.startsWith("de") || l === "german") return "de";
+  return l.substring(0, 2);
+}
+
 const normalizeArticles = (
     articles,
     category,
     country,
-    language
+    fallbackLanguage = "en"
 ) => {
-    return articles.map((article) => ({
-        title: article.title,
-
-        description: article.description || "",
-
-        content: article.content || "",
-
-        author: article.source?.name || "Unknown",
-
-        source: {
-            name: article.source?.name || "",
-            url: article.source?.url || "",
-        },
-
-        articleUrl: article.url,
-
-        imageUrl: article.image || "",
-
-        publishedAt: article.publishedAt,
-
-        category,
-
-        country,
-
-        language,
-
-        provider: "gnews",
-    }));
+    return articles.map((article) => {
+        const rawLang = article.language || article.lang || fallbackLanguage;
+        const articleLang = cleanLanguageCode(rawLang);
+        return {
+            title: article.title,
+            description: article.description || "",
+            content: article.content || "",
+            author: article.source?.name || "Unknown",
+            source: {
+                name: article.source?.name || "",
+                url: article.source?.url || "",
+            },
+            articleUrl: article.url,
+            imageUrl: article.image || "",
+            publishedAt: article.publishedAt,
+            category,
+            country,
+            language: articleLang,
+            originalLanguage: articleLang,
+            originalTitle: article.title,
+            originalDescription: article.description || "",
+            originalContent: article.content || "",
+            provider: "gnews",
+        };
+    });
 };
 
 module.exports = {

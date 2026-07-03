@@ -73,6 +73,30 @@ const newsSchema = new mongoose.Schema(
       type: String,
       default: "gnews",
     },
+    originalTitle: {
+      type: String,
+      trim: true,
+    },
+    originalDescription: {
+      type: String,
+      default: "",
+    },
+    originalContent: {
+      type: String,
+      default: "",
+    },
+    originalLanguage: {
+      type: String,
+      default: "en",
+    },
+    translations: [
+      {
+        language: { type: String, required: true },
+        title: { type: String, required: true },
+        description: { type: String, default: "" },
+        content: { type: String, default: "" },
+      }
+    ],
   },
   {
     timestamps: true,

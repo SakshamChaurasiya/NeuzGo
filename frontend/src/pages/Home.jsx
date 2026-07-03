@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
-import { FiArrowRight, FiBookmark } from "react-icons/fi";
+import { FiArrowRight, FiBookmark, FiFilter } from "react-icons/fi";
 import { FaBookmark } from "react-icons/fa";
 import apiClient from "../api/client";
 import ArticleCard from "../components/ArticleCard";
@@ -8,10 +8,38 @@ import HeroSlider from "../components/HeroSlider";
 import { useBookmarks } from "../contexts/BookmarkContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigationState } from "../contexts/NavigationStateContext";
+import toast from "react-hot-toast";
+
+const LANGUAGES = [
+  { code: "en", name: "English" },
+  { code: "hi", name: "Hindi" },
+  { code: "ta", name: "Tamil (தமிழ்)" },
+  { code: "te", name: "Telugu (తెలుగు)" },
+  { code: "bn", name: "Bengali (বাংলা)" },
+  { code: "mr", name: "Marathi (मराठी)" },
+  { code: "es", name: "Spanish" },
+  { code: "fr", name: "French" },
+  { code: "de", name: "German" },
+];
 
 const Home = () => {
   const { getNavigationState, setNavigationState } = useNavigationState();
   const savedState = getNavigationState("home") || {};
+
+  const [language, setLanguage] = useState(
+    savedState.language || localStorage.getItem("readingLanguage") || "en"
+  );
+
+  const isInitialLang = useRef(true);
+  useEffect(() => {
+    localStorage.setItem("readingLanguage", language);
+    if (isInitialLang.current) {
+      isInitialLang.current = false;
+      return;
+    }
+    const langName = LANGUAGES.find((l) => l.code === language)?.name || language;
+    toast.success(`Reading language changed to ${langName}`);
+  }, [language]);
 
   const [newsFeed, setNewsFeed] = useState(savedState.newsFeed || []);
   const [businessNews, setBusinessNews] = useState(savedState.businessNews || []);
@@ -27,6 +55,11 @@ const Home = () => {
   const { isBookmarked, addBookmark, removeBookmark } = useBookmarks();
   const { isAuthenticated } = useAuth();
 
+  // Reset page when language changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [language]);
+
   // Load Main Feed & Pagination
   useEffect(() => {
     const fetchMainFeed = async () => {
@@ -34,6 +67,7 @@ const Home = () => {
       if (
         currentSaved &&
         currentSaved.currentPage === currentPage &&
+        currentSaved.language === language &&
         currentSaved.newsFeed &&
         currentSaved.newsFeed.length > 0
       ) {
@@ -56,6 +90,7 @@ const Home = () => {
             category: "general",
             page: currentPage,
             limit: 10,
+            language,
           },
         });
         if (response.data && response.data.success) {
@@ -72,6 +107,7 @@ const Home = () => {
             totalPages: fetchedTotal,
             hasNext: fetchedHasNext,
             currentPage,
+            language,
           });
         }
       } catch (error) {
@@ -82,7 +118,7 @@ const Home = () => {
       }
     };
     fetchMainFeed();
-  }, [currentPage, getNavigationState, setNavigationState]);
+  }, [currentPage, language, getNavigationState, setNavigationState]);
 
   // Load Category Previews
   useEffect(() => {
@@ -90,6 +126,7 @@ const Home = () => {
       const currentSaved = getNavigationState("home");
       if (
         currentSaved &&
+        currentSaved.language === language &&
         currentSaved.businessNews &&
         currentSaved.businessNews.length > 0 &&
         currentSaved.techNews &&
@@ -104,11 +141,11 @@ const Home = () => {
       setLoadingSections(true);
       try {
         const [businessRes, techRes] = await Promise.all([
-          apiClient.get("/news", { params: { category: "business", limit: 3 } }),
-          apiClient.get("/news", { params: { category: "technology", limit: 3 } }),
+          apiClient.get("/news", { params: { category: "business", limit: 3, language } }),
+          apiClient.get("/news", { params: { category: "technology", limit: 3, language } }),
         ]);
 
-        let updatedState = {};
+        let updatedState = { language };
         if (businessRes.data?.success) {
           setBusinessNews(businessRes.data.data);
           updatedState.businessNews = businessRes.data.data;
@@ -127,7 +164,7 @@ const Home = () => {
       }
     };
     fetchCategoryPreviews();
-  }, [getNavigationState, setNavigationState]);
+  }, [language, getNavigationState, setNavigationState]);
 
   const handleBookmarkToggle = async (e, id) => {
     e.preventDefault();
@@ -160,6 +197,34 @@ const Home = () => {
 
   return (
     <div className="space-y-16">
+      {/* Welcome Header & Reading Language Selector */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-charcoal-200 pb-6 gap-6">
+        <div>
+          <span className="text-xs font-bold tracking-widest text-accent-blue uppercase mb-1.5 block">
+            Welcome to NeuFeed
+          </span>
+          <h1 className="font-serif text-4xl font-extrabold capitalize text-charcoal-950">
+            Top Headlines
+          </h1>
+        </div>
+
+        <div className="flex items-center gap-2" title="Reading Language">
+          <FiFilter className="text-charcoal-400 h-4 w-4" />
+          <select
+            value={language}
+            onChange={(e) => setLanguage(e.target.value)}
+            className="bg-white border border-charcoal-200 rounded px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:border-charcoal-900 transition-colors"
+            aria-label="Reading Language"
+          >
+            {LANGUAGES.map((l) => (
+              <option key={l.code} value={l.code}>
+                {l.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       {/* Breaking News Marquee */}
       {newsFeed.length > 0 && (
         <div className="w-full bg-charcoal-900 text-white py-3 px-4 rounded overflow-hidden flex items-center gap-4 text-xs font-semibold uppercase tracking-wider">

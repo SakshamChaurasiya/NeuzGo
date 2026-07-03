@@ -14,10 +14,10 @@ const fetchTopHeadlines = async ({
     // Map general to top for NewsData.io
     const mappedCategory = category === "general" ? "top" : category;
 
+    // language parameter is omitted to fetch widest possible news coverage
     const params = {
         category: mappedCategory,
         country,
-        language,
         size: limit,
     };
 
@@ -40,11 +40,22 @@ const fetchTopHeadlines = async ({
     return normalized;
 };
 
+function cleanLanguageCode(lang) {
+  if (!lang) return "en";
+  const l = String(lang).toLowerCase().trim();
+  if (l.startsWith("en") || l === "english") return "en";
+  if (l.startsWith("hi") || l === "hindi") return "hi";
+  if (l.startsWith("es") || l === "spanish") return "es";
+  if (l.startsWith("fr") || l === "french") return "fr";
+  if (l.startsWith("de") || l === "german") return "de";
+  return l.substring(0, 2);
+}
+
 const normalizeArticles = (
     articles,
     category,
     country,
-    language
+    fallbackLanguage = "en"
 ) => {
     return articles.map((article) => {
         let author = "Unknown";
@@ -61,6 +72,9 @@ const normalizeArticles = (
             ? article.content
             : "";
 
+        const rawLang = article.language || article.lang || fallbackLanguage;
+        const articleLang = cleanLanguageCode(rawLang);
+
         return {
             title: article.title || "",
             description: article.description || "",
@@ -75,7 +89,11 @@ const normalizeArticles = (
             publishedAt: article.pubDate ? new Date(article.pubDate) : new Date(),
             category,
             country,
-            language,
+            language: articleLang,
+            originalLanguage: articleLang,
+            originalTitle: article.title || "",
+            originalDescription: article.description || "",
+            originalContent: cleanedContent,
             provider: "newsdata",
         };
     });

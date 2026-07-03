@@ -5,6 +5,7 @@ import ArticleCard from "../components/ArticleCard";
 import { FiFilter, FiGlobe, FiInfo } from "react-icons/fi";
 import usePrefetch from "../hooks/usePrefetch";
 import { useNavigationState } from "../contexts/NavigationStateContext";
+import toast from "react-hot-toast";
 
 const COUNTRIES = [
   { code: "in", name: "India" },
@@ -17,6 +18,10 @@ const COUNTRIES = [
 const LANGUAGES = [
   { code: "en", name: "English" },
   { code: "hi", name: "Hindi" },
+  { code: "ta", name: "Tamil (தமிழ்)" },
+  { code: "te", name: "Telugu (తెలుగు)" },
+  { code: "bn", name: "Bengali (বাংলা)" },
+  { code: "mr", name: "Marathi (मराठी)" },
   { code: "es", name: "Spanish" },
   { code: "fr", name: "French" },
   { code: "de", name: "German" },
@@ -34,7 +39,20 @@ const Category = () => {
 
   // Filters state
   const [country, setCountry] = useState(savedState.country || "in");
-  const [language, setLanguage] = useState(savedState.language || "en");
+  const [language, setLanguage] = useState(
+    savedState.language || localStorage.getItem("readingLanguage") || "en"
+  );
+
+  const isInitialLang = useRef(true);
+  useEffect(() => {
+    localStorage.setItem("readingLanguage", language);
+    if (isInitialLang.current) {
+      isInitialLang.current = false;
+      return;
+    }
+    const langName = LANGUAGES.find((l) => l.code === language)?.name || language;
+    toast.success(`Reading language changed to ${langName}`);
+  }, [language]);
 
   // Pagination state
   const [page, setPage] = useState(savedState.page || 1);
@@ -173,12 +191,13 @@ const Category = () => {
             </select>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" title="Reading Language">
             <FiFilter className="text-charcoal-400 h-4 w-4" />
             <select
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
               className="bg-white border border-charcoal-200 rounded px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:border-charcoal-900 transition-colors"
+              aria-label="Reading Language"
             >
               {LANGUAGES.map((l) => (
                 <option key={l.code} value={l.code}>
