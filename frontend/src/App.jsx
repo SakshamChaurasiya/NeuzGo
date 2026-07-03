@@ -14,6 +14,7 @@ const Bookmarks = lazy(() => import("./pages/Bookmarks"));
 const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
 const Profile = lazy(() => import("./pages/Profile"));
+const Horoscope = lazy(() => import("./pages/Horoscope"));
 
 // Premium Loading Skeleton
 const PageSkeleton = () => (
@@ -42,6 +43,14 @@ function App() {
           <Route path="search" element={<Search />} />
           <Route path="login" element={<Login />} />
           <Route path="signup" element={<Signup />} />
+          <Route
+            path="horoscope"
+            element={
+              <ProtectedRoute>
+                <Horoscope />
+              </ProtectedRoute>
+            }
+          />
           {/* Protected routes — redirect to /login if unauthenticated */}
           <Route
             path="bookmarks"

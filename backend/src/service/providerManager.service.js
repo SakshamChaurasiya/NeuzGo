@@ -70,7 +70,11 @@ async function fetchArticles(params) {
 
       if (articles && articles.length > 0) {
         console.log(`[ProviderManager] ✅ ${name} returned ${articles.length} articles`);
-        return articles;
+        const { classifyArticle } = require("./horoscopeClassifier.service");
+        const classified = articles.map(classifyArticle);
+        if (articles.nextPage) classified.nextPage = articles.nextPage;
+        if (articles.providersDepleted) classified.providersDepleted = articles.providersDepleted;
+        return classified;
       }
 
       console.log(`[ProviderManager] ⚠️ ${name} returned 0 articles — trying next provider`);
@@ -120,7 +124,9 @@ async function syncFromAllProviders(params) {
       const articles = await provider.fetchTopHeadlines(params);
       if (articles && articles.length > 0) {
         console.log(`[ProviderManager] ✅ ${name} contributed ${articles.length} articles`);
-        allArticles.push(...articles);
+        const { classifyArticle } = require("./horoscopeClassifier.service");
+        const classified = articles.map(classifyArticle);
+        allArticles.push(...classified);
       } else {
         console.log(`[ProviderManager] ⚠️ ${name} returned 0 articles`);
       }

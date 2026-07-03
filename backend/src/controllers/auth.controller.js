@@ -71,7 +71,8 @@ const signup = async (req, res) => {
                 id: user._id,
                 username: user.username,
                 email: user.email,
-                phoneNumber: user.phoneNumber
+                phoneNumber: user.phoneNumber,
+                zodiacSign: user.zodiacSign || ""
             }
         });
     } catch (error) {
@@ -120,7 +121,8 @@ const login = async (req, res) => {
                 id: user._id,
                 username: user.username,
                 email: user.email,
-                phoneNumber: user.phoneNumber
+                phoneNumber: user.phoneNumber,
+                zodiacSign: user.zodiacSign || ""
             }
         });
     } catch (error) {
@@ -138,6 +140,7 @@ const getMe = async (req, res) => {
                 username: req.user.username,
                 email: req.user.email,
                 phoneNumber: req.user.phoneNumber,
+                zodiacSign: req.user.zodiacSign || ""
             }
         });
     } catch (error) {
@@ -146,8 +149,46 @@ const getMe = async (req, res) => {
     }
 };
 
+const updateZodiac = async (req, res) => {
+    try {
+        const { zodiacSign } = req.body;
+        if (!zodiacSign) {
+            return res.status(400).json({ message: "Zodiac sign is required." });
+        }
+        const normalizedSign = zodiacSign.toLowerCase().trim();
+        const horoscopeService = require("../service/horoscope.service");
+        if (!horoscopeService.VALID_SIGNS.has(normalizedSign)) {
+            return res.status(400).json({ message: `Invalid zodiac sign. Must be one of: ${Array.from(horoscopeService.VALID_SIGNS).join(", ")}` });
+        }
+
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        user.zodiacSign = normalizedSign;
+        await user.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Zodiac sign updated successfully.",
+            user: {
+                id: user._id,
+                username: user.username,
+                email: user.email,
+                phoneNumber: user.phoneNumber,
+                zodiacSign: user.zodiacSign
+            }
+        });
+    } catch (error) {
+        console.error("Update zodiac error:", error);
+        return res.status(500).json({ message: "Server error updating zodiac sign preference." });
+    }
+};
+
 module.exports = {
     signup,
     login,
-    getMe
+    getMe,
+    updateZodiac
 };

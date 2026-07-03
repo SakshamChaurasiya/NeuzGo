@@ -6,6 +6,7 @@ const connectDB = require("./config/db");
 const newsRoutes = require("./routes/news.routes");
 const authRoutes = require("./routes/auth.routes");
 const bookmarkRoutes = require("./routes/bookmark.routes");
+const horoscopeRoutes = require("./routes/horoscope.routes");
 const { initCron } = require("./config/cron");
 
 const app = express();
@@ -30,6 +31,7 @@ const PORT = process.env.PORT || 5001;
 app.use("/api/auth", authRoutes);
 app.use("/api/news", newsRoutes);
 app.use("/api/bookmarks", bookmarkRoutes);
+app.use("/api/horoscope", horoscopeRoutes);
 
 app.listen(PORT, () => {
     console.log(`App is listening on PORT: ${PORT}`);

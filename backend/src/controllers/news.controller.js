@@ -265,7 +265,14 @@ const getNews = async (req, res) => {
     const fetchLanguageKey = "all";
 
     // Build filter - no language constraint to maximize news coverage
-    const filter = { category, country };
+    const filter = {};
+    if (req.query.isHoroscopeRelated === "true") {
+      filter.isHoroscopeRelated = true;
+    } else {
+      filter.category = category;
+      filter.country = country;
+    }
+    
     if (search) {
       filter.$or = [
         { title: { $regex: search, $options: "i" } },
@@ -278,7 +285,7 @@ const getNews = async (req, res) => {
 
     // ── Step 1: How many articles does MongoDB already have? ──────────────────
     const requiredCount = page * limit;
-    console.log(`[News] 🔍 ${category}/${country}/${language} page=${page} limit=${limit} — need ${requiredCount} docs`);
+    console.log(`[News] 🔍 ${category}/${country}/${language} page=${page} limit=${limit} isHoroscopeRelated=${req.query.isHoroscopeRelated === "true"} — need ${requiredCount} docs`);
 
     let cachedCount = await News.countDocuments(filter);
     console.log(`[News] 💾 MongoDB has ${cachedCount} matching articles`);
@@ -288,7 +295,7 @@ const getNews = async (req, res) => {
     // this is the single signal that controls hasNext on the frontend
     let providersDepleted = false;
 
-    if (cachedCount < requiredCount && !search) {
+    if (cachedCount < requiredCount && !search && req.query.isHoroscopeRelated !== "true") {
       console.log(`[News] 📡 DB short by ${requiredCount - cachedCount} — calling Provider Manager...`);
 
       let currentProviderPage = Math.floor(cachedCount / 10) + 1;

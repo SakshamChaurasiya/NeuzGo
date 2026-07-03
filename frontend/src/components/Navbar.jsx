@@ -76,6 +76,18 @@ const Navbar = () => {
                 {cat.name}
               </NavLink>
             ))}
+            <NavLink
+              to="/horoscope"
+              className={({ isActive }) =>
+                `px-3 py-2 text-sm font-medium tracking-wide transition-colors duration-150 border-b-2 ${
+                  isActive
+                    ? "border-charcoal-900 text-charcoal-900"
+                    : "border-transparent text-charcoal-500 hover:text-charcoal-900"
+                }`
+              }
+            >
+              Horoscope
+            </NavLink>
           </nav>
 
           {/* Utility Controls */}
@@ -168,6 +180,17 @@ const Navbar = () => {
               {cat.name}
             </NavLink>
           ))}
+          <NavLink
+            to="/horoscope"
+            onClick={() => setMobileMenuOpen(false)}
+            className={({ isActive }) =>
+              `block px-3 py-2 text-base font-medium rounded ${
+                isActive ? "bg-charcoal-50 text-charcoal-950" : "text-charcoal-600 hover:bg-charcoal-50/50 hover:text-charcoal-900"
+              }`
+            }
+          >
+            Horoscope
+          </NavLink>
           {isAuthenticated && (
             <div className="pt-4 border-t border-charcoal-100 mt-4 space-y-2">
               <Link

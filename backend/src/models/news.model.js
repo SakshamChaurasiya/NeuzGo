@@ -97,6 +97,15 @@ const newsSchema = new mongoose.Schema(
         content: { type: String, default: "" },
       }
     ],
+    isHoroscopeRelated: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    tags: {
+      type: [String],
+      default: [],
+    },
   },
   {
     timestamps: true,
@@ -114,6 +123,11 @@ newsSchema.index(
 newsSchema.index(
   { category: 1, country: 1, language: 1, publishedAt: -1 },
   { name: "category_country_language_publishedAt" }
+);
+
+newsSchema.index(
+  { isHoroscopeRelated: 1, publishedAt: -1 },
+  { name: "isHoroscopeRelated_publishedAt" }
 );
 
 // ─── NewsCursor Schema for cursor-based pagination ──────────────────────────────

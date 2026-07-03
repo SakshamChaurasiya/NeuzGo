@@ -1,19 +1,51 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FiUser, FiMail, FiPhone, FiLogOut, FiBookmark, FiCalendar } from "react-icons/fi";
 import { useAuth } from "../contexts/AuthContext";
 import { useBookmarks } from "../contexts/BookmarkContext";
 import toast from "react-hot-toast";
+import apiClient from "../api/client";
 
 const Profile = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshProfile } = useAuth();
   const { bookmarks } = useBookmarks();
   const navigate = useNavigate();
+
+  const [zodiacSign, setZodiacSign] = useState(user?.zodiacSign || "");
+  const [savingZodiac, setSavingZodiac] = useState(false);
+
+  useEffect(() => {
+    if (user?.zodiacSign) {
+      setZodiacSign(user.zodiacSign);
+    }
+  }, [user]);
 
   const handleLogout = () => {
     logout();
     toast.success("You have been signed out.");
     navigate("/");
+  };
+
+  const handleSaveZodiac = async () => {
+    if (!zodiacSign) {
+      toast.error("Please select a valid zodiac sign.");
+      return;
+    }
+    setSavingZodiac(true);
+    try {
+      const response = await apiClient.put("/auth/zodiac", { zodiacSign });
+      if (response.data?.success) {
+        toast.success("Zodiac sign updated successfully!");
+        await refreshProfile();
+      } else {
+        toast.error("Failed to update zodiac sign.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || "Failed to save zodiac sign.");
+    } finally {
+      setSavingZodiac(false);
+    }
   };
 
   const formatDate = (dateStr) => {
@@ -80,6 +112,41 @@ const Profile = () => {
               <div>
                 <p className="text-[11px] uppercase font-bold tracking-wider text-charcoal-400">Mobile Number</p>
                 <p className="text-sm font-semibold text-charcoal-900">{user?.phoneNumber || "—"}</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 pt-2">
+              <span className="text-xl leading-none">✨</span>
+              <div className="flex-1 space-y-1">
+                <label htmlFor="zodiacSelect" className="text-[11px] uppercase font-bold tracking-wider text-charcoal-400">Zodiac Sign</label>
+                <div className="flex gap-2">
+                  <select
+                    id="zodiacSelect"
+                    value={zodiacSign}
+                    onChange={(e) => setZodiacSign(e.target.value)}
+                    className="w-full max-w-xs px-3 py-1.5 text-sm bg-charcoal-50 border border-charcoal-200 rounded-md focus:outline-none focus:border-charcoal-800"
+                  >
+                    <option value="">Select Zodiac Sign</option>
+                    <option value="aries">Aries (♈)</option>
+                    <option value="taurus">Taurus (♉)</option>
+                    <option value="gemini">Gemini (♊)</option>
+                    <option value="cancer">Cancer (♋)</option>
+                    <option value="leo">Leo (♌)</option>
+                    <option value="virgo">Virgo (♍)</option>
+                    <option value="libra">Libra (♎)</option>
+                    <option value="scorpio">Scorpio (♏)</option>
+                    <option value="sagittarius">Sagittarius (♐)</option>
+                    <option value="capricorn">Capricorn (♑)</option>
+                    <option value="aquarius">Aquarius (♒)</option>
+                    <option value="pisces">Pisces (♓)</option>
+                  </select>
+                  <button
+                    onClick={handleSaveZodiac}
+                    disabled={savingZodiac || zodiacSign === (user?.zodiacSign || "")}
+                    className="px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-white bg-charcoal-900 hover:bg-charcoal-850 rounded disabled:opacity-50 transition-colors uppercase cursor-pointer"
+                  >
+                    {savingZodiac ? "Saving..." : "Save"}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
