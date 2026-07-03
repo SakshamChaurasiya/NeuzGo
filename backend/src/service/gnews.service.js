@@ -6,16 +6,34 @@ const fetchTopHeadlines = async ({
     category = "general",
     country = "in",
     language = "en",
+    from,
+    sortby
 }) => {
     console.log("🌍 Calling GNews API...");
+    // Explicitly build params object to avoid sending undefined values
+    const queryParams = {
+        page,
+        max: limit,
+        category,
+        country,
+        lang: language,
+    };
+
+    if (from) queryParams.from = from;
+    if (sortby) queryParams.sortby = sortby;
+
+    // const { data } = await gnews.get("/top-headlines", {
+    //     params: {
+    //         page,
+    //         max: limit,
+    //         category,
+    //         country,
+    //         lang: language,
+    //     },
+    // });
+
     const { data } = await gnews.get("/top-headlines", {
-        params: {
-            page,
-            max: limit,
-            category,
-            country,
-            lang: language,
-        },
+        params: queryParams,
     });
 
     console.log(

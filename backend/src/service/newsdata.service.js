@@ -6,9 +6,11 @@ const fetchTopHeadlines = async ({
     category = "general",
     country = "in",
     language = "en",
+    from,      // Accepted but omitted for NewsData.io compatibility
+    sortby,    // Accepted but omitted for NewsData.io compatibility
 }) => {
     console.log("🌍 Calling NewsData.io...");
-    
+
     // Map general to top for NewsData.io
     const mappedCategory = category === "general" ? "top" : category;
 
@@ -55,8 +57,8 @@ const normalizeArticles = (
         }
 
         // Clean up paid plan notice from content
-        const cleanedContent = article.content && article.content !== "ONLY AVAILABLE IN PAID PLANS" 
-            ? article.content 
+        const cleanedContent = article.content && article.content !== "ONLY AVAILABLE IN PAID PLANS"
+            ? article.content
             : "";
 
         return {

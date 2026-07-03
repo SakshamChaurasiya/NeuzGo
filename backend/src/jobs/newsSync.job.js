@@ -6,6 +6,20 @@ async function syncNews() {
   console.log("⏱️ [Cron] News sync started — scope: general/IN/EN/page1");
 
   try {
+
+    // ── Calculate Today's Midnight IST in UTC ──────────────────────────────────
+    const now = new Date();
+    // Convert current server time to an IST date string
+    const istString = now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
+    const localIstDate = new Date(istString);
+
+    // Set to midnight local IST time
+    localIstDate.setHours(0, 0, 0, 0);
+
+    // Calculate the absolute UTC timestamp for that exact moment
+    const istMidnightOffset = localIstDate.getTime() - (5.5 * 60 * 60 * 1000);
+    const fromUtcString = new Date(istMidnightOffset).toISOString(); // e.g., "2026-07-02T18:30:00.000Z"
+
     // ── 1. Fetch from News Provider ─────────────────────────────────────────────
     console.log("📡 [Cron] Calling News Provider API...");
     const articles = await fetchTopHeadlines({
@@ -14,6 +28,8 @@ async function syncNews() {
       category: "general",
       country: "in",
       language: "en",
+      from: fromUtcString,        // Added time boundary
+      sortby: "publishedAt"      // Added sorting override
     });
     console.log(`✅ [Cron] News Provider returned ${articles.length} articles`);
 
