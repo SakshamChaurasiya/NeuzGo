@@ -18,6 +18,10 @@ async function syncNews() {
     console.log(`✅ [Cron] News Provider returned ${articles.length} articles`);
 
     const fetchedCount = articles.length;
+    let bulkOps = [];
+    let insertedCount = 0;
+    let updatedCount = 0;
+    let duplicateCount = 0;
 
     if (fetchedCount === 0) {
       console.log("⚠️ [Cron] No articles returned from News Provider — skipping upsert");
@@ -30,9 +34,7 @@ async function syncNews() {
       ).lean();
       const existingMap = new Map(existingArticles.map((a) => [a.articleUrl, a]));
 
-      const bulkOps = [];
-      let insertedCount = 0;
-      let updatedCount = 0;
+      bulkOps = [];
 
       const CHECK_FIELDS = [
         "title", "description", "content", "author",
@@ -73,6 +75,8 @@ async function syncNews() {
               },
             });
             updatedCount++;
+          } else {
+            duplicateCount++;
           }
         } else {
           bulkOps.push({
@@ -86,7 +90,7 @@ async function syncNews() {
         await News.bulkWrite(bulkOps, { ordered: false });
       }
 
-      console.log(`📊 [Cron] Upsert complete — inserted: ${insertedCount}, updated: ${updatedCount}`);
+      console.log(`📊 [Cron] Upsert complete — inserted: ${insertedCount}, updated: ${updatedCount}, duplicated: ${duplicateCount}`);
     }
 
     // ── 3. Cleanup ─────────────────────────────────────────────────────────────
@@ -109,9 +113,12 @@ async function syncNews() {
 
     const duration = Date.now() - startTime;
     console.log("📊 [Cron] Sync Summary:");
-    console.log(`   Inserted : ${fetchedCount > 0 ? (fetchedCount - (fetchedCount - (bulkOps?.length || 0))) : 0}`);
-    console.log(`   Deleted  : ${deletedCount} (general >30d: ${generalCleanup.deletedCount}, other >48h: ${categoryCleanup.deletedCount})`);
-    console.log(`   Duration : ${duration}ms`);
+    console.log(`   Fetched    : ${fetchedCount}`);
+    console.log(`   Inserted   : ${insertedCount}`);
+    console.log(`   Updated    : ${updatedCount}`);
+    console.log(`   Duplicates : ${duplicateCount}`);
+    console.log(`   Deleted    : ${deletedCount} (general >30d: ${generalCleanup.deletedCount}, other >48h: ${categoryCleanup.deletedCount})`);
+    console.log(`   Duration   : ${duration}ms`);
 
   } catch (error) {
     // Detect 429 specifically so it shows up clearly in logs
