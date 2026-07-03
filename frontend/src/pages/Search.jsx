@@ -17,6 +17,7 @@ const Search = () => {
   // Pagination
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [hasNext, setHasNext] = useState(false);
 
   const suggestionRef = useRef(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -29,6 +30,7 @@ const Search = () => {
     } else {
       setResults([]);
       setTotalPages(1);
+      setHasNext(false);
     }
   }, [queryParam, page]);
 
@@ -82,11 +84,13 @@ const Search = () => {
       if (response.data && response.data.success) {
         setResults(response.data.data);
         setTotalPages(response.data.totalPages || 1);
+        setHasNext(!!response.data.hasNext);
       }
     } catch (error) {
       console.error("Error fetching search results:", error);
       setResults([]);
       setTotalPages(1);
+      setHasNext(false);
     } finally {
       setLoadingResults(false);
     }
@@ -222,7 +226,7 @@ const Search = () => {
             )}
 
             {/* Search Pagination */}
-            {totalPages > 1 && results.length > 0 && (
+            {(totalPages > 1 || hasNext) && results.length > 0 && (
               <div className="flex items-center justify-center gap-2 pt-10 border-t border-charcoal-100">
                 <button
                   disabled={page === 1}
@@ -237,8 +241,8 @@ const Search = () => {
                   <span className="text-charcoal-500">{totalPages}</span>
                 </div>
                 <button
-                  disabled={page === totalPages}
-                  onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+                  disabled={!hasNext}
+                  onClick={() => setPage((prev) => prev + 1)}
                   className="px-4 py-2 text-xs font-bold border border-charcoal-200 rounded hover:bg-charcoal-50 disabled:opacity-50 transition-colors uppercase tracking-wider"
                 >
                   Next

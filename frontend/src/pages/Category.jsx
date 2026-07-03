@@ -33,6 +33,7 @@ const Category = () => {
   // Pagination state
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [hasNext, setHasNext] = useState(false);
 
   // Prefetch hook — used to retrieve any pre-warmed data from Navbar hovers (Task 5.1)
   const { getCachedData } = usePrefetch();
@@ -54,6 +55,7 @@ const Category = () => {
             console.log(`[Category] ⚡ Using prefetched cache for "${categoryId}" — skipping API call`);
             setArticles(cachedData.data);
             setTotalPages(cachedData.totalPages || 1);
+            setHasNext(!!cachedData.hasNext);
             setLoading(false);
             return; // Skip API call entirely
           }
@@ -72,11 +74,13 @@ const Category = () => {
         if (response.data && response.data.success) {
           setArticles(response.data.data);
           setTotalPages(response.data.totalPages || 1);
+          setHasNext(!!response.data.hasNext);
         }
       } catch (error) {
         console.error("Error loading category news:", error);
         setArticles([]);
         setTotalPages(1);
+        setHasNext(false);
       } finally {
         setLoading(false);
       }
@@ -160,7 +164,7 @@ const Category = () => {
           )}
 
           {/* Pagination */}
-          {totalPages > 1 && (
+          {(totalPages > 1 || hasNext) && (
             <div className="flex items-center justify-center gap-2 pt-10 border-t border-charcoal-100">
               <button
                 disabled={page === 1}
@@ -175,8 +179,8 @@ const Category = () => {
                 <span className="text-charcoal-500">{totalPages}</span>
               </div>
               <button
-                disabled={page === totalPages}
-                onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={!hasNext}
+                onClick={() => setPage((prev) => prev + 1)}
                 className="px-4 py-2 text-xs font-bold border border-charcoal-200 rounded hover:bg-charcoal-50 disabled:opacity-50 transition-colors uppercase tracking-wider"
               >
                 Next

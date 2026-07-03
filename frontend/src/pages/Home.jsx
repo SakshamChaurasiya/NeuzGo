@@ -15,6 +15,7 @@ const Home = () => {
   
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [hasNext, setHasNext] = useState(false);
   
   const [loadingFeed, setLoadingFeed] = useState(true);
   const [loadingSections, setLoadingSections] = useState(true);
@@ -37,9 +38,11 @@ const Home = () => {
         if (response.data && response.data.success) {
           setNewsFeed(response.data.data);
           setTotalPages(response.data.totalPages || 1);
+          setHasNext(!!response.data.hasNext);
         }
       } catch (error) {
         console.error("Error loading main news feed:", error);
+        setHasNext(false);
       } finally {
         setLoadingFeed(false);
       }
@@ -262,7 +265,7 @@ const Home = () => {
             )}
 
             {/* Pagination Controls */}
-            {totalPages > 1 && (
+            {(totalPages > 1 || hasNext) && (
               <div className="flex items-center justify-center gap-2 pt-8">
                 <button
                   disabled={currentPage === 1}
@@ -277,8 +280,8 @@ const Home = () => {
                   <span className="text-charcoal-500">{totalPages}</span>
                 </div>
                 <button
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  disabled={!hasNext}
+                  onClick={() => setCurrentPage((prev) => prev + 1)}
                   className="px-4 py-2 text-xs font-bold border border-charcoal-200 rounded hover:bg-charcoal-50 disabled:opacity-50 transition-colors uppercase tracking-wider"
                 >
                   Next

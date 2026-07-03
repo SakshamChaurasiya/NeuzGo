@@ -28,12 +28,14 @@ const fetchTopHeadlines = async ({
     const { data } = await newsData.get("/latest", { params });
     console.log(`NewsData.io returned ${(data?.results || []).length} articles`);
 
-    return normalizeArticles(
+    const normalized = normalizeArticles(
         data?.results || [],
         category,
         country,
         language
     );
+    normalized.nextPage = data?.nextPage;
+    return normalized;
 };
 
 const normalizeArticles = (

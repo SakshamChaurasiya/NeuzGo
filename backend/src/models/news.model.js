@@ -88,4 +88,25 @@ newsSchema.index(
   { name: "category_country_language_publishedAt" }
 );
 
+// ─── NewsCursor Schema for cursor-based pagination ──────────────────────────────
+const newsCursorSchema = new mongoose.Schema(
+  {
+    key: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true,
+    },
+    cursor: {
+      type: String,
+      required: true,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+mongoose.model("NewsCursor", newsCursorSchema);
+
 module.exports = mongoose.model("News", newsSchema);

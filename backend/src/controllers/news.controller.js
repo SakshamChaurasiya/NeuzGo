@@ -1,5 +1,9 @@
+const mongoose = require("mongoose");
 const News = require("../models/news.model");
 const { fetchTopHeadlines, isGNewsRateLimited, activateRateLimitBackoff } = require("../service/newsProvider.service");
+const newsDataService = require("../service/newsdata.service");
+const NewsCursor = mongoose.model("NewsCursor");
+
 
 // ─── Configuration ─────────────────────────────────────────────────────────────
 const CONFIG = {
@@ -26,11 +30,11 @@ const recentFetches = new Map();
  * Returns true if a provider API call is allowed for this combination.
  * Returns false if the same combination was fetched within the last 15 minutes.
  */
-function canCallGNews(category, country, language) {
+function canCallGNews(category, country, language, page = 1) {
   const now = Date.now();
 
-  // Per-combination deduplication
-  const key = `${category}:${country}:${language}`;
+  // Per-combination and per-page deduplication
+  const key = `${category}:${country}:${language}:${page}`;
   const lastFetch = recentFetches.get(key);
   if (lastFetch && now - lastFetch < CONFIG.DEDUP_WINDOW_MS) {
     const secAgo = Math.floor((now - lastFetch) / 1000);
@@ -42,8 +46,8 @@ function canCallGNews(category, country, language) {
 }
 
 /** Mark a combination as just-fetched so the dedup window starts. */
-function markFetched(category, country, language) {
-  recentFetches.set(`${category}:${country}:${language}`, Date.now());
+function markFetched(category, country, language, page = 1) {
+  recentFetches.set(`${category}:${country}:${language}:${page}`, Date.now());
 }
 
 
@@ -125,33 +129,146 @@ const getNews = async (req, res) => {
     let cachedCount = await News.countDocuments(filter);
     console.log(`[News] 💾 MongoDB has ${cachedCount} matching articles`);
 
-    // ── Step 2: Fetch from GNews only when genuinely needed ───────────────────
-    // Condition: DB is short AND we haven't recently fetched AND not rate-limited
-    if (cachedCount < requiredCount && !search && canCallGNews(category, country, language)) {
-      console.log(`[News] 📡 DB short by ${requiredCount - cachedCount} — calling News Provider (page=1 only)...`);
+    // ── Step 2: Fetch from Providers only when genuinely needed ───────────────────
+    if (cachedCount < requiredCount && !search) {
+      console.log(`[News] 📡 DB short by ${requiredCount - cachedCount} — calling News Provider...`);
 
-      try {
-        const fetched = await fetchTopHeadlines({
-          page: 1,       // Always page 1 — free tier only
-          limit: 10,     // Max the free tier reliably returns
-          category,
-          country,
-          language,
-        });
+      let currentProviderPage = Math.floor(cachedCount / 10) + 1;
+      let fetchedCount = cachedCount;
+      let newsDataCursor = null;
+      let iterations = 0;
+      const MAX_ITERATIONS = 5; // Prevent runaway requests
 
-        markFetched(category, country, language);
-
-        if (fetched.length > 0) {
-          await upsertArticles(fetched);
-          // Re-count after upsert
-          cachedCount = await News.countDocuments(filter);
-          console.log(`[News] ✅ After upsert — MongoDB now has ${cachedCount} matching articles`);
-        } else {
-          console.log("[News] ⚠️ News Provider returned 0 articles");
+      while (fetchedCount < requiredCount && iterations < MAX_ITERATIONS) {
+        // Look up newsDataCursor from DB if it is null and currentProviderPage > 1
+        if (!newsDataCursor && currentProviderPage > 1) {
+          const cursorDoc = await NewsCursor.findOne({
+            key: `${category}:${country}:${language}:${currentProviderPage - 1}`
+          }).lean();
+          if (cursorDoc) {
+            newsDataCursor = cursorDoc.cursor;
+            console.log(`[News] 💾 Found NewsData.io cursor in DB for page ${currentProviderPage - 1}: ${newsDataCursor}`);
+          }
         }
-      } catch (apiErr) {
-        console.error("[News] ❌ News Provider API error:", apiErr.message);
-        // Graceful degradation — fall through and serve from DB
+
+        // Only fetch if GNews isn't rate-limited, OR we're doing NewsData.io cursor stream, OR we haven't fetched this page recently
+        const canFetch = newsDataCursor || canCallGNews(category, country, language, currentProviderPage);
+        if (!canFetch) {
+          console.log(`[News] ⏭️ Page ${currentProviderPage} recently fetched, incrementing page to check next...`);
+          currentProviderPage++;
+          iterations++;
+          continue;
+        }
+
+        iterations++;
+        try {
+          let fetched = null;
+          let usedNewsData = false;
+
+          // Try GNews first if not rate limited and we don't have a NewsData cursor
+          if (!isGNewsRateLimited() && !newsDataCursor) {
+            try {
+              console.log(`[News] 📡 Fetching GNews page ${currentProviderPage}...`);
+              fetched = await fetchTopHeadlines({
+                page: currentProviderPage,
+                limit: 10,
+                category,
+                country,
+                language,
+              });
+            } catch (apiErr) {
+              console.error("[News] ❌ GNews API error:", apiErr.message);
+            }
+          }
+
+          // Fallback to NewsData.io if GNews failed, returned 0 articles, or was skipped
+          if (!fetched || fetched.length === 0) {
+            console.log(`[News] 🔄 Using NewsData.io fallback for page ${currentProviderPage}...`);
+            try {
+              fetched = await newsDataService.fetchTopHeadlines({
+                page: newsDataCursor || currentProviderPage,
+                limit: 10,
+                category,
+                country,
+                language,
+              });
+              usedNewsData = true;
+            } catch (apiErr) {
+              console.error("[News] ❌ NewsData.io API error:", apiErr.message);
+            }
+          }
+
+          if (fetched && fetched.nextPage) {
+            newsDataCursor = fetched.nextPage;
+            if (usedNewsData) {
+              await NewsCursor.updateOne(
+                { key: `${category}:${country}:${language}:${currentProviderPage}` },
+                { cursor: newsDataCursor },
+                { upsert: true }
+              );
+              console.log(`[News] 💾 Saved NewsData.io cursor for page ${currentProviderPage}`);
+            }
+          } else {
+            newsDataCursor = null;
+          }
+
+          markFetched(category, country, language, currentProviderPage);
+
+          if (fetched && fetched.length > 0) {
+            await upsertArticles(fetched);
+            // Re-count available articles
+            const newCount = await News.countDocuments(filter);
+            console.log(`[News] 💾 After upsert — MongoDB now has ${newCount} articles (was ${fetchedCount})`);
+
+            // If no new unique articles were added, and we didn't use NewsData.io yet, try NewsData.io!
+            if (newCount <= fetchedCount && !usedNewsData) {
+              console.log("[News] ⏹️ GNews returned duplicates. Trying fallback to NewsData.io...");
+              try {
+                fetched = await newsDataService.fetchTopHeadlines({
+                  page: newsDataCursor || currentProviderPage,
+                  limit: 10,
+                  category,
+                  country,
+                  language,
+                });
+                if (fetched && fetched.length > 0) {
+                  if (fetched.nextPage) {
+                    newsDataCursor = fetched.nextPage;
+                    await NewsCursor.updateOne(
+                      { key: `${category}:${country}:${language}:${currentProviderPage}` },
+                      { cursor: newsDataCursor },
+                      { upsert: true }
+                    );
+                    console.log(`[News] 💾 Saved NewsData.io cursor for page ${currentProviderPage}`);
+                  }
+                  await upsertArticles(fetched);
+                  const afterNewsDataCount = await News.countDocuments(filter);
+                  if (afterNewsDataCount > fetchedCount) {
+                    fetchedCount = afterNewsDataCount;
+                    currentProviderPage++;
+                    continue; // successfully got new articles from NewsData.io
+                  }
+                }
+              } catch (err) {
+                console.error("[News] ❌ NewsData.io fallback after GNews duplicates failed:", err.message);
+              }
+            }
+
+            if (newCount <= fetchedCount) {
+              console.log("[News] ⏹️ No new unique articles were added after all attempts. Stopping.");
+              break;
+            }
+            fetchedCount = newCount;
+          } else {
+            console.log(`[News] ⏹️ Provider returned 0 articles at page ${currentProviderPage}`);
+            break;
+          }
+
+          currentProviderPage++;
+        } catch (apiErr) {
+          console.error("[News] ❌ News Provider API error in loop:", apiErr.message);
+          break;
+        }
       }
     } else if (cachedCount >= requiredCount) {
       console.log("[News] ✅ Cache hit — serving from MongoDB, no GNews call needed");
@@ -169,14 +286,19 @@ const getNews = async (req, res) => {
       News.countDocuments(filter),
     ]);
 
-    console.log(`[News] 📤 Returning ${articles.length} articles (total: ${total})`);
+    const hasNext = articles.length === limit;
+    const totalPages = hasNext ? Math.max(Math.ceil(total / limit), page + 1) : Math.ceil(total / limit);
+
+    console.log(`[News] 📤 Returning ${articles.length} articles (total: ${total}, hasNext: ${hasNext}, totalPages: ${totalPages})`);
 
     return res.status(200).json({
       success: true,
       page,
       limit,
       total,
-      totalPages: Math.ceil(total / limit) || 1,
+      totalPages,
+      hasNext,
+      hasPrevious: page > 1,
       data: articles,
     });
 
