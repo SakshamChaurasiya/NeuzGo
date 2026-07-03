@@ -15,6 +15,7 @@ const COUNTRIES = [
 
 const LANGUAGES = [
   { code: "en", name: "English" },
+  { code: "hi", name: "Hindi" },
   { code: "es", name: "Spanish" },
   { code: "fr", name: "French" },
   { code: "de", name: "German" },
@@ -24,11 +25,11 @@ const Category = () => {
   const { categoryId } = useParams();
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   // Filters state
   const [country, setCountry] = useState("in");
   const [language, setLanguage] = useState("en");
-  
+
   // Pagination state
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
