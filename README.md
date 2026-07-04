@@ -103,13 +103,18 @@ cd backend
 npm install
 ```
 
-Create a `.env` file in the `backend` directory based on the `.env.example` file (or just create it with the following keys):
-```
-PORT=5000
-MONGODB_URI=your_mongodb_connection_string
+Create a `.env` file in the `backend` directory:
+```env
+PORT=8001
+MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret_key
 GNEWS_API_KEY=your_gnews_api_key
 NEWSDATA_API_KEY=your_newsdata_api_key
+
+# ImageKit Configuration (Optional - for custom image uploads)
+IMAGEKIT_PUBLIC_KEY=your_imagekit_public_key
+IMAGEKIT_PRIVATE_KEY=your_imagekit_private_key
+IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/your_imagekit_id
 ```
 
 Start the backend development server:

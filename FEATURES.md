@@ -39,6 +39,8 @@ NeuzGo is designed to offer a premium reading experience, robust user management
 | | Translations cached in MongoDB by article ID + language to avoid redundant API calls. | ✅ |
 | | Progressive translation queue with streaming SSE updates to the frontend. | ✅ |
 | **Community Blog Platform** | Users can create and save blog posts as drafts. | ✅ |
+| | Secure ImageKit cover image uploading with live preview and toggle for manual URL input. | ✅ |
+| | Autosave draft persistence: Form fields automatically backup to `localStorage` and recover on page refresh. | ✅ |
 | | Draft → Pending Review → Approved / Rejected editorial workflow. | ✅ |
 | | Auto-generated URL slug and estimated reading time calculated from content. | ✅ |
 | | Like / toggle-like system with per-user like tracking. | ✅ |
@@ -48,6 +50,10 @@ NeuzGo is designed to offer a premium reading experience, robust user management
 | | Blog Editor page with rich-text creation and editing flow. | ✅ |
 | | Blog Details page with full content, author info, and social interactions. | ✅ |
 | **Admin Dashboard** | Admin-only blog moderation panel (approve / reject / delete). | ✅ |
+| | Responsive, sticky-action preview modals (independent scrolling, capped viewport height). | ✅ |
+| | News Synchronizations filter dropdown: Graph displays combined sync logs with filters for GNews, Currents, or NewsData APIs. | ✅ |
+| | Restricted User Profile editing: Admins can only edit user roles; username, email, and phone number are read-only. | ✅ |
+| | Suspended & Deleted account blocks: Suspended accounts receive a clear warning on login, while deleted accounts receive an "Account doesn't exist" rejection. | ✅ |
 | | `isAdmin` middleware enforces role-based access on all admin routes. | ✅ |
 | | Blog access control: only the post author or an admin can delete a blog post. | ✅ |
 | | Platform-wide statistics endpoint for admin reporting. | ✅ |
@@ -55,7 +61,9 @@ NeuzGo is designed to offer a premium reading experience, robust user management
 | | Dedicated Bookmarks page to manage saved articles (with remove capability). | ✅ |
 | | Bookmarked articles are shielded from automatic cleanup jobs. | ✅ |
 | | Profile page displaying user stats (total bookmarks, zodiac sign) and account details. | ✅ |
-| **UI/UX Polish** | Skeleton loading animations during network requests. | ✅ |
+| **UI/UX Polish** | Dynamic ImageKit transformations (`?tr=w-...,q-...`) for constrained resizing, auto-focus cropping, and quality tuning on blog grids and headers. | ✅ |
+| | Adaptive container sizes preventing awkward cropping of custom-aspect-ratio images on detail pages. | ✅ |
+| | Skeleton loading animations during network requests. | ✅ |
 | | Lazy-loaded pages via React `Suspense` for faster initial load. | ✅ |
 | | Responsive, mobile-first design using Tailwind CSS. | ✅ |
 | | Page-level fade-in animations (Framer Motion). | ✅ |
