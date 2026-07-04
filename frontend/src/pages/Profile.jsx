@@ -111,7 +111,7 @@ const Profile = () => {
   };
 
   const handleDeleteBlog = async (blogId) => {
-    if (!window.confirm("Are you sure you want to delete this blog?")) return;
+    if (!window.confirm("Are you sure you want to delete this blog? This action cannot be undone.")) return;
     try {
       const res = await apiClient.delete(`/blogs/${blogId}`);
       if (res.data?.success) {
@@ -121,7 +121,22 @@ const Profile = () => {
       }
     } catch (err) {
       console.error(err);
-      toast.error("Error deleting blog.");
+      toast.error(err.response?.data?.message || "Error deleting blog.");
+    }
+  };
+
+  const handleAdminDeleteBlog = async (blogId) => {
+    if (!window.confirm("Delete this blog as admin? This action cannot be undone.")) return;
+    try {
+      const res = await apiClient.delete(`/admin/blogs/${blogId}`);
+      if (res.data?.success) {
+        toast.success("Blog deleted by admin.");
+        fetchAdminDashboard();
+        fetchMyBlogs();
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || "Error deleting blog.");
     }
   };
 
@@ -364,6 +379,12 @@ const Profile = () => {
                       >
                         <FiX className="h-3.5 w-3.5" /> Reject
                       </button>
+                      <button
+                        onClick={() => handleAdminDeleteBlog(blog._id)}
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-1 px-3 py-1.5 bg-charcoal-900 text-white rounded text-xs font-semibold hover:bg-charcoal-800 transition-colors"
+                      >
+                        <FiTrash2 className="h-3.5 w-3.5" /> Delete
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -430,20 +451,20 @@ const Profile = () => {
                     </Link>
                   )}
                   {(blog.status === "Draft" || blog.status === "Rejected") && (
-                    <>
-                      <Link
-                        to={`/blogs/edit/${blog._id}`}
-                        className="flex-1 sm:flex-none flex items-center justify-center gap-1 px-3 py-1.5 border border-charcoal-200 rounded text-xs font-semibold text-charcoal-700 hover:bg-charcoal-50"
-                      >
-                        <FiEdit2 className="h-3 w-3" /> Edit
-                      </Link>
-                      <button
-                        onClick={() => handleDeleteBlog(blog._id)}
-                        className="flex-1 sm:flex-none flex items-center justify-center gap-1 px-3 py-1.5 border border-red-200 rounded text-xs font-semibold text-red-600 hover:bg-red-50"
-                      >
-                        <FiTrash2 className="h-3.5 w-3.5" /> Delete
-                      </button>
-                    </>
+                    <Link
+                      to={`/blogs/edit/${blog._id}`}
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-1 px-3 py-1.5 border border-charcoal-200 rounded text-xs font-semibold text-charcoal-700 hover:bg-charcoal-50"
+                    >
+                      <FiEdit2 className="h-3 w-3" /> Edit
+                    </Link>
+                  )}
+                  {blog.status !== "Deleted" && (
+                    <button
+                      onClick={() => handleDeleteBlog(blog._id)}
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-1 px-3 py-1.5 border border-red-200 rounded text-xs font-semibold text-red-600 hover:bg-red-50"
+                    >
+                      <FiTrash2 className="h-3.5 w-3.5" /> Delete
+                    </button>
                   )}
                 </div>
               </div>

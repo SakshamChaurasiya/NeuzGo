@@ -59,10 +59,10 @@ const updateDraft = async (blogId, authorId, blogData) => {
 };
 
 /**
- * Soft delete or hard delete own draft or rejected blog
+ * Soft-delete own blog (any status) — author can delete their own blogs at any stage
  * @param {string} blogId - ID of the blog
- * @param {string} authorId - ID of the blog author
- * @returns {Promise<Object>} The updated or deleted blog document
+ * @param {string} authorId - ID of the blog author (for authorization)
+ * @returns {Promise<Object>} The updated blog document
  */
 const deleteOwnDraft = async (blogId, authorId) => {
     const blog = await Blog.findOne({ _id: blogId, author: authorId });
@@ -70,15 +70,11 @@ const deleteOwnDraft = async (blogId, authorId) => {
         throw new Error("Blog not found or unauthorized.");
     }
 
-    if (blog.status !== "Draft" && blog.status !== "Rejected") {
-        throw new Error(`Cannot delete a blog in ${blog.status} status.`);
+    if (blog.status === "Deleted") {
+        throw new Error("Blog has already been deleted.");
     }
 
-    // Set status to Deleted or remove it from the DB.
-    // Let's hard-delete drafts/rejected blogs to keep DB clean, or update status to 'Deleted'.
-    // The rules say: "Draft -> Deleted (if soft delete is used)".
-    // Let's mark as status: "Deleted" so user dashboard can filter them or keep history if needed.
-    // Let's support soft deletion:
+    // Soft-delete: mark as "Deleted" so author dashboard can show history if needed
     blog.status = "Deleted";
     return await blog.save();
 };

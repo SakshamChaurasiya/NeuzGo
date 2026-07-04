@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { FiArrowLeft, FiUser, FiCalendar, FiClock, FiEye, FiHeart, FiFlag } from "react-icons/fi";
+import { FiArrowLeft, FiUser, FiCalendar, FiClock, FiEye, FiHeart, FiFlag, FiTrash2 } from "react-icons/fi";
 import { FaHeart } from "react-icons/fa";
 import apiClient from "../api/client";
 import toast from "react-hot-toast";
@@ -85,6 +85,22 @@ const BlogDetails = () => {
     }
   };
 
+  const handleDelete = async () => {
+    if (!window.confirm("Are you sure you want to delete this blog? This action cannot be undone.")) return;
+    try {
+      const isAdmin = user?.role === "admin";
+      const endpoint = isAdmin ? `/admin/blogs/${id}` : `/blogs/${id}`;
+      const response = await apiClient.delete(endpoint);
+      if (response.data?.success) {
+        toast.success("Blog deleted successfully.");
+        navigate("/blogs");
+      }
+    } catch (err) {
+      console.error("Delete error:", err);
+      toast.error(err.response?.data?.message || "Failed to delete blog.");
+    }
+  };
+
   if (loading) {
     return (
       <div className="max-w-3xl mx-auto py-16 px-4 space-y-6 animate-pulse">
@@ -104,6 +120,9 @@ const BlogDetails = () => {
 
   const hasLiked = blog.likedBy?.includes(user?.id);
   const hasReported = blog.reportedBy?.includes(user?.id);
+  const isAuthor = user && blog.author?._id && (blog.author._id === user.id || blog.author._id === user._id);
+  const isAdmin = user?.role === "admin";
+  const canDelete = isAuthor || isAdmin;
 
   return (
     <article className="max-w-3xl mx-auto py-12 px-4 space-y-8">
@@ -137,7 +156,7 @@ const BlogDetails = () => {
             </span>
           </div>
 
-          {/* Action Buttons */}
+            {/* Action Buttons */}
           <div className="flex items-center gap-4">
             <button
               onClick={handleLike}
@@ -165,6 +184,17 @@ const BlogDetails = () => {
               <FiFlag className="h-4 w-4" />
               <span>{hasReported ? "Reported" : "Report"}</span>
             </button>
+
+            {canDelete && (
+              <button
+                onClick={handleDelete}
+                className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-charcoal-400 hover:text-red-600 transition-colors cursor-pointer"
+                aria-label="Delete blog post"
+              >
+                <FiTrash2 className="h-4 w-4" />
+                <span>Delete</span>
+              </button>
+            )}
           </div>
         </div>
 
