@@ -54,12 +54,15 @@ const AdminDashboard = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [syncProvider, setSyncProvider] = useState("all");
   const navigate = useNavigate();
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = async (showSkeleton = false) => {
     try {
-      setLoading(true);
-      const response = await apiClient.get("/admin/analytics");
+      if (showSkeleton) setLoading(true);
+      const response = await apiClient.get("/admin/analytics", {
+        params: { provider: syncProvider }
+      });
       if (response.data && response.data.success) {
         setData(response.data.data);
       }
@@ -67,13 +70,17 @@ const AdminDashboard = () => {
       console.error("Error fetching dashboard data:", error);
       toast.error("Failed to load dashboard metrics.");
     } finally {
-      setLoading(false);
+      if (showSkeleton) setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchDashboardData();
+    fetchDashboardData(true);
   }, []);
+
+  useEffect(() => {
+    fetchDashboardData(false);
+  }, [syncProvider]);
 
   const handleSyncNews = async () => {
     try {
@@ -214,9 +221,21 @@ const AdminDashboard = () => {
         {/* Left: Charts Column */}
         <div className="lg:col-span-2 space-y-6">
           <div className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider">News Synchronizations (Last 10 Entry Days)</h3>
-              <span className="text-[10px] text-gray-400">GNews source sync</span>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+              <div>
+                <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider">News Synchronizations (Last 10 Entry Days)</h3>
+                <p className="text-[10px] text-gray-400 font-semibold uppercase">API Source: {syncProvider}</p>
+              </div>
+              <select
+                value={syncProvider}
+                onChange={(e) => setSyncProvider(e.target.value)}
+                className="px-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 font-semibold text-gray-600 cursor-pointer hover:bg-gray-100 transition-colors"
+              >
+                <option value="all">All APIs Combined</option>
+                <option value="gnews">GNews API</option>
+                <option value="currents">Currents API</option>
+                <option value="newsdata">NewsData API</option>
+              </select>
             </div>
             
             {/* Custom Responsive SVG Bar Chart */}

@@ -52,8 +52,14 @@ const getAdminAnalytics = async (req, res) => {
         ]);
 
         // News published per day over last 30 days
+        const { provider } = req.query;
+        const newsMatch = { publishedAt: { $gte: thirtyDaysAgo } };
+        if (provider && provider !== "all") {
+            newsMatch.provider = provider.toLowerCase();
+        }
+
         const newsPublished = await News.aggregate([
-            { $match: { publishedAt: { $gte: thirtyDaysAgo } } },
+            { $match: newsMatch },
             {
                 $group: {
                     _id: { $dateToString: { format: "%Y-%m-%d", date: "$publishedAt" } },
