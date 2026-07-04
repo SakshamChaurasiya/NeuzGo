@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { FiCalendar, FiUser, FiClock } from "react-icons/fi";
+import { FiCalendar, FiUser, FiClock, FiShare2 } from "react-icons/fi";
+import toast from "react-hot-toast";
 
 const BlogPostCard = ({ blog }) => {
   if (!blog) return null;
@@ -74,10 +75,26 @@ const BlogPostCard = ({ blog }) => {
 
         {/* Card Footer: Read time & "Read More" CTA */}
         <div className="pt-4 border-t border-charcoal-50 flex items-center justify-between">
-          <span className="flex items-center gap-1 text-xs text-charcoal-400 font-semibold tracking-wide uppercase">
-            <FiClock className="h-3.5 w-3.5" />
-            {blog.readingTime || 1} min read
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="flex items-center gap-1 text-xs text-charcoal-400 font-semibold tracking-wide uppercase">
+              <FiClock className="h-3.5 w-3.5" />
+              {blog.readingTime || 1} min read
+            </span>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const blogUrl = `${window.location.origin}/blogs/${blog._id}`;
+                navigator.clipboard.writeText(blogUrl);
+                toast.success("Blog link copied!");
+              }}
+              className="p-1 hover:bg-charcoal-50 text-charcoal-400 hover:text-indigo-650 transition-colors rounded-full"
+              aria-label="Share blog link"
+              title="Share blog link"
+            >
+              <FiShare2 className="h-4 w-4" />
+            </button>
+          </div>
           <Link
             to={`/blogs/${blog._id}`}
             className="relative inline-flex flex-col text-xs font-bold uppercase tracking-wider text-indigo-600 hover:text-indigo-800 transition-colors py-1"

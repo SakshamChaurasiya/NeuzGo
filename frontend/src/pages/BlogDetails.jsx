@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { FiArrowLeft, FiUser, FiCalendar, FiClock, FiEye, FiHeart, FiFlag, FiTrash2 } from "react-icons/fi";
+import { FiArrowLeft, FiUser, FiCalendar, FiClock, FiEye, FiHeart, FiFlag, FiTrash2, FiShare2 } from "react-icons/fi";
 import { FaHeart } from "react-icons/fa";
 import apiClient from "../api/client";
 import toast from "react-hot-toast";
@@ -113,6 +113,11 @@ const BlogDetails = () => {
     }
   };
 
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href);
+    toast.success("Blog post link copied!");
+  };
+
   if (loading) {
     return (
       <div className="max-w-3xl mx-auto py-16 px-4 space-y-6 animate-pulse">
@@ -199,6 +204,15 @@ const BlogDetails = () => {
             >
               <FiFlag className="h-4 w-4" />
               <span>{hasReported ? "Reported" : "Report"}</span>
+            </button>
+
+            <button
+              onClick={handleShare}
+              className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-charcoal-400 hover:text-indigo-600 transition-colors cursor-pointer"
+              aria-label="Share blog post"
+            >
+              <FiShare2 className="h-4 w-4" />
+              <span>Share</span>
             </button>
 
             {canDelete && (
