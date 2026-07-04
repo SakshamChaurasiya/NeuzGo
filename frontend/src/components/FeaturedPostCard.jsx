@@ -6,7 +6,20 @@ const FeaturedPostCard = ({ blog }) => {
   if (!blog) return null;
 
   const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&auto=format&fit=crop&q=60";
-  const displayImage = blog.imageUrl || FALLBACK_IMAGE;
+  
+  const getOptimizedImageUrl = (url, width, height, quality = 90) => {
+    if (!url) return url;
+    if (url.includes("ik.imagekit.io")) {
+      const separator = url.includes("?") ? "&" : "?";
+      const transform = height 
+        ? `tr=w-${width},h-${height},fo-auto,q-${quality}`
+        : `tr=w-${width},q-${quality}`;
+      return `${url}${separator}${transform}`;
+    }
+    return url;
+  };
+
+  const displayImage = getOptimizedImageUrl(blog.imageUrl, 1000, 625) || FALLBACK_IMAGE;
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "";

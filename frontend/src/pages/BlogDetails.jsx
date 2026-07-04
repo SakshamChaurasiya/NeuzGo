@@ -14,6 +14,18 @@ const BlogDetails = () => {
   const [loading, setLoading] = useState(true);
   const [likeAnimated, setLikeAnimated] = useState(false);
 
+  const getOptimizedImageUrl = (url, width, height, quality = 95) => {
+    if (!url) return url;
+    if (url.includes("ik.imagekit.io")) {
+      const separator = url.includes("?") ? "&" : "?";
+      const transform = height 
+        ? `tr=w-${width},h-${height},fo-auto,q-${quality}`
+        : `tr=w-${width},q-${quality}`;
+      return `${url}${separator}${transform}`;
+    }
+    return url;
+  };
+
   useEffect(() => {
     const fetchBlogDetails = async () => {
       try {
@@ -136,8 +148,12 @@ const BlogDetails = () => {
 
       {/* Cover Image */}
       {blog.imageUrl && (
-        <div className="aspect-[21/9] w-full rounded-xl overflow-hidden border border-charcoal-100 shadow-sm bg-charcoal-50">
-          <img src={blog.imageUrl} alt={blog.title} className="w-full h-full object-cover" />
+        <div className="w-full rounded-xl overflow-hidden border border-charcoal-100 shadow-sm bg-charcoal-50/50 flex justify-center items-center max-h-[480px]">
+          <img 
+            src={getOptimizedImageUrl(blog.imageUrl, 1200, null, 95)} 
+            alt={blog.title} 
+            className="max-h-[480px] w-full object-contain rounded-xl" 
+          />
         </div>
       )}
 
