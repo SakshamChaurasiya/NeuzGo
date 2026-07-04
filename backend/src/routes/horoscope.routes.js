@@ -1,7 +1,13 @@
 const express = require("express");
-const { getDailyHoroscope } = require("../controllers/horoscope.controller");
+const { getDailyHoroscope, getHoroscopeHistory } = require("../controllers/horoscope.controller");
+const { protect } = require("../middlewares/authMiddleware");
 
 const router = express.Router();
+
+/**
+ * GET /api/horoscope/history
+ */
+router.get("/history", protect, getHoroscopeHistory);
 
 /**
  * GET /api/horoscope/:sign

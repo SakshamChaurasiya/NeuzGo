@@ -52,6 +52,12 @@ const Horoscope = () => {
   const [articles, setArticles] = useState([]);
   const [loadingArticles, setLoadingArticles] = useState(true);
 
+  // New state for historical views
+  const [viewMode, setViewMode] = useState("today"); // "today" | "week" | "month"
+  const [historyData, setHistoryData] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [errorHistory, setErrorHistory] = useState(null);
+
   // Save selected sign preference
   const handleSignSelect = (signId) => {
     setSelectedSign(signId);
@@ -79,6 +85,31 @@ const Horoscope = () => {
     };
     fetchHoroscope();
   }, [selectedSign]);
+
+  // Fetch Horoscope History when viewMode or selectedSign changes
+  useEffect(() => {
+    if (viewMode === "today") return;
+    const fetchHistory = async () => {
+      setLoadingHistory(true);
+      setErrorHistory(null);
+      try {
+        const response = await apiClient.get("/horoscope/history", {
+          params: { range: viewMode, sign: selectedSign }
+        });
+        if (response.data?.success) {
+          setHistoryData(response.data.data || []);
+        } else {
+          setErrorHistory("Failed to load historical readings.");
+        }
+      } catch (err) {
+        console.error("Horoscope history load error:", err);
+        setErrorHistory("Could not load horoscope history.");
+      } finally {
+        setLoadingHistory(false);
+      }
+    };
+    fetchHistory();
+  }, [viewMode, selectedSign]);
 
   // Fetch Related Articles
   useEffect(() => {
@@ -254,24 +285,126 @@ const Horoscope = () => {
         </div>
       </div>
 
-      {/* Today's Horoscope Card */}
+      {/* Horoscope Reading Card / History View */}
       <div className="space-y-8">
-        <div className="border-b border-charcoal-100 pb-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="border-b border-charcoal-100 pb-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h2 className="font-serif text-3xl font-extrabold text-charcoal-950 tracking-tight">
-              Today's Reading
+              {viewMode === "today" ? "Today's Reading" : viewMode === "week" ? "Weekly Summary" : "Monthly Summary"}
             </h2>
             <p className="text-sm text-charcoal-500 mt-1">
               Personalized guidance for {selectedSign.charAt(0).toUpperCase() + selectedSign.slice(1)}
             </p>
           </div>
-          <div className="flex items-center gap-2 text-xs font-bold text-charcoal-700 uppercase tracking-widest bg-charcoal-50 px-4 py-2 rounded-xl border border-charcoal-200 shadow-sm">
-            <FiCalendar className="h-4 w-4 text-accent-amber" />
-            {horoscope?.date || new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+          <div className="flex flex-wrap items-center gap-4 w-full md:w-auto justify-between md:justify-end">
+            {/* Toggle Segmented Control */}
+            <div className="flex items-center bg-charcoal-50 p-1.5 rounded-2xl border border-charcoal-200/60 shadow-sm">
+              {[
+                { id: "today", label: "Today" },
+                { id: "week", label: "This Week" },
+                { id: "month", label: "This Month" }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setViewMode(tab.id)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer ${
+                    viewMode === tab.id
+                      ? "bg-gradient-to-r from-indigo-950 to-charcoal-950 text-white shadow-md"
+                      : "text-charcoal-500 hover:text-charcoal-800"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {viewMode === "today" && (
+              <div className="flex items-center gap-2 text-xs font-bold text-charcoal-700 uppercase tracking-widest bg-charcoal-50 px-4 py-2.5 rounded-xl border border-charcoal-200 shadow-sm">
+                <FiCalendar className="h-4 w-4 text-accent-amber" />
+                {horoscope?.date || new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+              </div>
+            )}
           </div>
         </div>
 
-        {loadingHoroscope ? (
+        {viewMode !== "today" ? (
+          /* History Timeline View */
+          loadingHistory ? (
+            <div className="space-y-6">
+              {[1, 2, 3].map((n) => (
+                <div key={n} className="h-28 bg-gradient-to-r from-charcoal-50 via-charcoal-100 to-charcoal-50 border border-charcoal-100 rounded-2xl relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/45 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" style={{
+                    backgroundImage: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4) 50%, transparent)',
+                    animation: 'shimmer 1.8s infinite'
+                  }}></div>
+                </div>
+              ))}
+              {/* Shimmer animation inject */}
+              <style dangerouslySetInnerHTML={{__html: `
+                @keyframes shimmer {
+                  100% { transform: translateX(100%); }
+                }
+              `}} />
+            </div>
+          ) : errorHistory ? (
+            <div className="p-10 text-center bg-red-50/60 border border-red-100 rounded-2xl text-red-800 font-medium">
+              <span className="text-2xl mr-2">⚠️</span> {errorHistory}
+            </div>
+          ) : historyData.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-charcoal-200 rounded-3xl text-center px-6 gap-5 bg-charcoal-50/30">
+              <div className="h-16 w-16 rounded-2xl bg-indigo-50 flex items-center justify-center text-3xl text-indigo-600 shadow-inner">
+                ✨
+              </div>
+              <div className="space-y-2">
+                <h3 className="font-serif text-xl font-extrabold text-charcoal-900">No history available yet</h3>
+                <p className="text-sm text-charcoal-500 max-w-md mx-auto leading-relaxed">
+                  Check back after a few days to view your accumulated historical insights.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="relative border-l-2 border-indigo-100/60 pl-6 ml-4 space-y-8 animate-fade-in-up">
+              {historyData.map((item, idx) => (
+                <div key={item.dateStr || idx} className="relative group">
+                  {/* Timeline dot */}
+                  <div className="absolute -left-[33px] top-1.5 w-4.5 h-4.5 rounded-full border-2 border-indigo-950 bg-white flex items-center justify-center transition-transform duration-300 group-hover:scale-120 group-hover:bg-indigo-950">
+                    <div className="w-1.5 h-1.5 bg-accent-amber rounded-full"></div>
+                  </div>
+                  
+                  {/* History item card */}
+                  <div className="bg-white border border-charcoal-150 hover:border-indigo-150 rounded-2xl p-5 md:p-6 transition-all duration-300 hover:shadow-lg hover:shadow-indigo-950/5">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-charcoal-50 pb-4 mb-4">
+                      <div>
+                        <span className="text-xs font-bold text-indigo-600 uppercase tracking-wider">
+                          {item.date}
+                        </span>
+                        <div className="flex flex-wrap items-center gap-2 mt-1">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-green-50 text-green-700 text-[10px] font-bold uppercase tracking-wider rounded-md border border-green-100">
+                            Mood: {item.mood}
+                          </span>
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-red-50 text-red-700 text-[10px] font-bold uppercase tracking-wider rounded-md border border-red-100">
+                            Compatibility: {item.compatibility}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex gap-4.5 text-[11px] font-semibold text-charcoal-500">
+                        <div>
+                          Lucky Number: <span className="font-bold text-charcoal-900 font-serif">{item.lucky_number}</span>
+                        </div>
+                        <div>
+                          Lucky Color: <span className="font-bold text-charcoal-900 font-serif">{item.lucky_color}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-charcoal-700 leading-relaxed text-sm italic font-serif">
+                      "{item.horoscope_data}"
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
+        ) : loadingHoroscope ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="md:col-span-2 h-72 bg-gradient-to-r from-charcoal-50 via-charcoal-100 to-charcoal-50 border border-charcoal-100 rounded-2xl relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/45 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" style={{
