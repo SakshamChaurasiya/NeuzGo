@@ -89,14 +89,7 @@ const newsSchema = new mongoose.Schema(
       type: String,
       default: "en",
     },
-    translations: [
-      {
-        language: { type: String, required: true },
-        title: { type: String, required: true },
-        description: { type: String, default: "" },
-        content: { type: String, default: "" },
-      }
-    ],
+
     isHoroscopeRelated: {
       type: Boolean,
       default: false,

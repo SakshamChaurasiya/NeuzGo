@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
 const News = require("../models/news.model");
 const { fetchArticles } = require("../service/providerManager.service");
-const translationService = require("../service/translation.service");
 const NewsCursor = mongoose.model("NewsCursor");
+const translationService = require("../service/translation.service");
 
 
 // ─── Configuration ─────────────────────────────────────────────────────────────
@@ -88,167 +88,6 @@ async function upsertArticles(articles) {
 
 // ─── Controllers ──────────────────────────────────────────────────────────────
 
-/**
- * GET /api/news
- *
- * Database-first strategy:
- *   1. Count matching documents in MongoDB.
- *   2. If DB has enough articles for the requested page → serve directly.
- *   3. If DB is short AND GNews is allowed → fetch page 1 from GNews, upsert, re-query.
- *   4. On 429 → activate backoff, serve whatever is in the DB.
- *   5. On any other GNews failure → serve from DB (graceful degradation).
- *
- * GNews is ALWAYS called with page=1 only.
- * MongoDB handles all pagination — GNews page > 1 is not used on the free tier.
- */
-/**
- * Lazily translates an article card (title and description).
- */
-async function translateArticleCard(article, readingLanguage) {
-  let origLang = article.originalLanguage || article.language || "en";
-  // Normalise invalid stored codes (e.g., "al" from old "all" fetch key) to "en"
-  if (!origLang || origLang.length !== 2 || origLang === "al") origLang = "en";
-
-  // Force translation to English if title contains Hindi (Devanagari) characters
-  const hasDevanagari = /[\u0900-\u097F]/.test(article.title || "");
-  if (hasDevanagari && readingLanguage === "en" && origLang === "en") {
-    origLang = "hi";
-  }
-
-  if (readingLanguage === origLang) {
-    return article;
-  }
-
-  // Check if translation is cached
-  const cached = article.translations?.find((t) => t.language === readingLanguage);
-  if (cached) {
-    return {
-      ...article,
-      title: cached.title,
-      description: cached.description,
-      language: readingLanguage,
-    };
-  }
-
-  const origTitle = article.originalTitle || article.title;
-  const origDesc = article.originalDescription || article.description || "";
-
-  const translated = await translationService.translateFields(
-    origTitle,
-    origDesc,
-    readingLanguage,
-    origLang
-  );
-
-  // Cache in DB
-  try {
-    await News.updateOne(
-      { _id: article._id },
-      {
-        $push: {
-          translations: {
-            language: readingLanguage,
-            title: translated.title,
-            description: translated.description,
-            content: "",
-          },
-        },
-      }
-    );
-  } catch (err) {
-    console.error(`[News] ❌ Failed to cache card translation for ${article._id}:`, err.message);
-  }
-
-  return {
-    ...article,
-    title: translated.title,
-    description: translated.description,
-    language: readingLanguage,
-  };
-}
-
-/**
- * Lazily translates the full article details (title, description, content).
- */
-async function translateArticleDetails(article, readingLanguage) {
-  let origLang = article.originalLanguage || article.language || "en";
-  // Normalise invalid stored codes (e.g., "al" from old "all" fetch key) to "en"
-  if (!origLang || origLang.length !== 2 || origLang === "al") origLang = "en";
-
-  // Force translation to English if title contains Hindi (Devanagari) characters
-  const hasDevanagari = /[\u0900-\u097F]/.test(article.title || "");
-  if (hasDevanagari && readingLanguage === "en" && origLang === "en") {
-    origLang = "hi";
-  }
-
-  if (readingLanguage === origLang) {
-    return article;
-  }
-
-  const cached = article.translations?.find((t) => t.language === readingLanguage);
-  if (cached && cached.content) {
-    return {
-      ...article,
-      title: cached.title,
-      description: cached.description,
-      content: cached.content,
-      language: readingLanguage,
-    };
-  }
-
-  const origTitle = article.originalTitle || article.title;
-  const origDesc = article.originalDescription || article.description || "";
-  const origContent = article.originalContent || article.content || "";
-
-  const translated = await translationService.translateFullArticle(
-    origTitle,
-    origDesc,
-    origContent,
-    readingLanguage,
-    origLang
-  );
-
-  try {
-    const hasLang = article.translations?.some((t) => t.language === readingLanguage);
-    if (hasLang) {
-      await News.updateOne(
-        { _id: article._id, "translations.language": readingLanguage },
-        {
-          $set: {
-            "translations.$.title": translated.title,
-            "translations.$.description": translated.description,
-            "translations.$.content": translated.content,
-          },
-        }
-      );
-    } else {
-      await News.updateOne(
-        { _id: article._id },
-        {
-          $push: {
-            translations: {
-              language: readingLanguage,
-              title: translated.title,
-              description: translated.description,
-              content: translated.content,
-            },
-          },
-        }
-      );
-    }
-  } catch (err) {
-    console.error(`[News] ❌ Failed to cache full translation for ${article._id}:`, err.message);
-  }
-
-  return {
-    ...article,
-    title: translated.title,
-    description: translated.description,
-    content: translated.content,
-    language: readingLanguage,
-  };
-}
-
 const getNews = async (req, res) => {
   try {
     const page = Math.max(1, Number(req.query.page) || 1);
@@ -278,8 +117,6 @@ const getNews = async (req, res) => {
         { title: { $regex: search, $options: "i" } },
         { description: { $regex: search, $options: "i" } },
         { content: { $regex: search, $options: "i" } },
-        { "translations.title": { $regex: search, $options: "i" } },
-        { "translations.description": { $regex: search, $options: "i" } },
       ];
     }
 
@@ -392,17 +229,21 @@ const getNews = async (req, res) => {
     const hasNext = articles.length === limit;
     const totalPages = hasNext ? Math.max(Math.ceil(total / limit), page + 1) : Math.ceil(total / limit);
 
-    // Lazily translate the articles for card display (title and description only)
-    // Lazily translate the articles for card display sequentially to avoid concurrent rate limits (429)
+    // Translate the articles for card display (title and description only) sequentially
     const translatedArticles = [];
     for (const art of articles) {
-      const trans = await translateArticleCard(art, language);
+      const trans = await translationService.translateArticleCard(art, language);
       translatedArticles.push(trans);
       // Pacing delay (10ms)
       await new Promise((resolve) => setTimeout(resolve, 10));
     }
 
     console.log(`[News] 📤 Returning ${translatedArticles.length} articles (total: ${total}, hasNext: ${hasNext}, totalPages: ${totalPages})`);
+
+    // Optionally prefetch and translate the next page in the background
+    if (hasNext) {
+      translationService.prefetchNextPage(filter, page, limit, language);
+    }
 
     return res.status(200).json({
       success: true,
@@ -440,7 +281,7 @@ const getNewsById = async (req, res) => {
     }
 
     const readingLanguage = req.query.language || CONFIG.DEFAULT_LANGUAGE;
-    const translatedArticle = await translateArticleDetails(article, readingLanguage);
+    const translatedArticle = await translationService.translateArticleDetails(article, readingLanguage);
 
     return res.status(200).json({
       success: true,
