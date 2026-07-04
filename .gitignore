@@ -94,3 +94,6 @@ Thumbs.db
 # Scripts
 backend/scripts/
 
+# Scratch folder
+backend/src/scratch/
+
