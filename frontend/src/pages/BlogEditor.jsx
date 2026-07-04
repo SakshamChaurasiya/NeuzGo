@@ -1,0 +1,331 @@
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { FiSave, FiSend, FiArrowLeft, FiImage, FiEye, FiEdit3 } from "react-icons/fi";
+import apiClient from "../api/client";
+import toast from "react-hot-toast";
+
+const CATEGORIES = ["General", "Technology", "Health", "Business", "Sports", "Politics", "Entertainment"];
+
+const PRESETS = [
+  "https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&auto=format&fit=crop&q=60",
+  "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=800&auto=format&fit=crop&q=60",
+  "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=800&auto=format&fit=crop&q=60",
+];
+
+const BlogEditor = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const isEditMode = !!id;
+
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [content, setContent] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [category, setCategory] = useState("General");
+  const [tagsInput, setTagsInput] = useState("");
+
+  const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(false);
+  const [activeTab, setActiveTab] = useState("edit"); // edit vs preview
+
+  useEffect(() => {
+    if (isEditMode) {
+      const fetchBlogDetails = async () => {
+        setFetching(true);
+        try {
+          // Since getMyBlogs takes a status, we can request our blogs and filter on client or create a single details route.
+          // Let's call /api/blogs/my-blogs and look for our blog.
+          const res = await apiClient.get("/blogs/my-blogs");
+          if (res.data?.success) {
+            const blog = res.data.data.find((b) => b._id === id);
+            if (blog) {
+              setTitle(blog.title || "");
+              setDescription(blog.description || "");
+              setContent(blog.content || "");
+              setImageUrl(blog.imageUrl || "");
+              setCategory(blog.category || "General");
+              setTagsInput(blog.tags ? blog.tags.join(", ") : "");
+            } else {
+              toast.error("Blog not found or unauthorized.");
+              navigate("/profile");
+            }
+          }
+        } catch (err) {
+          console.error(err);
+          toast.error("Error loading blog details.");
+        } finally {
+          setFetching(false);
+        }
+      };
+      fetchBlogDetails();
+    }
+  }, [id, isEditMode, navigate]);
+
+  const handleSave = async (submitAfterSave = false) => {
+    if (!title.trim() || !description.trim() || !content.trim()) {
+      toast.error("Title, short description, and content are required.");
+      return null;
+    }
+
+    setLoading(true);
+    const tags = tagsInput
+      .split(",")
+      .map((t) => t.trim())
+      .filter((t) => t.length > 0);
+
+    const blogData = {
+      title,
+      description,
+      content,
+      imageUrl: imageUrl || PRESETS[0],
+      category,
+      tags,
+    };
+
+    try {
+      let savedBlog = null;
+      if (isEditMode) {
+        const response = await apiClient.put(`/blogs/${id}`, blogData);
+        if (response.data?.success) {
+          savedBlog = response.data.data;
+        }
+      } else {
+        const response = await apiClient.post("/blogs/draft", blogData);
+        if (response.data?.success) {
+          savedBlog = response.data.data;
+        }
+      }
+
+      if (savedBlog) {
+        if (submitAfterSave) {
+          const submitResponse = await apiClient.post(`/blogs/${savedBlog._id}/submit`);
+          if (submitResponse.data?.success) {
+            toast.success("Blog submitted for review successfully!");
+            navigate("/profile");
+            return;
+          }
+        }
+        toast.success(isEditMode ? "Blog updated successfully!" : "Draft saved successfully!");
+        if (!isEditMode) {
+          navigate(`/blogs/edit/${savedBlog._id}`);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || "Failed to save blog draft.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (fetching) {
+    return (
+      <div className="max-w-4xl mx-auto py-12 px-4 space-y-4 animate-pulse">
+        <div className="h-8 bg-charcoal-100 rounded w-1/4"></div>
+        <div className="h-64 bg-charcoal-100 rounded"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto py-8 px-4 space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <button
+          onClick={() => navigate("/profile")}
+          className="flex items-center gap-2 text-sm font-semibold text-charcoal-600 hover:text-charcoal-900 transition-colors"
+        >
+          <FiArrowLeft className="h-4 w-4" /> Back to Profile
+        </button>
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <button
+            onClick={() => handleSave(false)}
+            disabled={loading}
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 border border-charcoal-200 rounded-lg text-sm font-semibold text-charcoal-700 bg-white hover:bg-charcoal-50 transition-all disabled:opacity-50"
+          >
+            <FiSave className="h-4 w-4" /> Save Draft
+          </button>
+          <button
+            onClick={() => handleSave(true)}
+            disabled={loading}
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-sm hover:shadow disabled:opacity-50"
+          >
+            <FiSend className="h-4 w-4" /> Submit for Review
+          </button>
+        </div>
+      </div>
+
+      {/* Editor Body */}
+      <div className="bg-white border border-charcoal-100 rounded-xl shadow-sm overflow-hidden">
+        {/* Tab Headers */}
+        <div className="flex border-b border-charcoal-100 bg-charcoal-50/50 px-4">
+          <button
+            onClick={() => setActiveTab("edit")}
+            className={`flex items-center gap-2 px-4 py-3 text-sm font-bold border-b-2 transition-all ${
+              activeTab === "edit"
+                ? "border-charcoal-900 text-charcoal-900"
+                : "border-transparent text-charcoal-500 hover:text-charcoal-800"
+            }`}
+          >
+            <FiEdit3 className="h-4 w-4" /> Write
+          </button>
+          <button
+            onClick={() => setActiveTab("preview")}
+            className={`flex items-center gap-2 px-4 py-3 text-sm font-bold border-b-2 transition-all ${
+              activeTab === "preview"
+                ? "border-charcoal-900 text-charcoal-900"
+                : "border-transparent text-charcoal-500 hover:text-charcoal-800"
+            }`}
+          >
+            <FiEye className="h-4 w-4" /> Live Preview
+          </button>
+        </div>
+
+        {activeTab === "edit" ? (
+          <div className="p-6 space-y-6">
+            {/* Title */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-charcoal-500">Title</label>
+              <input
+                type="text"
+                placeholder="Enter a compelling title..."
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="w-full px-4 py-3 border border-charcoal-200 rounded-lg text-lg font-bold text-charcoal-900 focus:outline-none focus:border-charcoal-900 transition-colors"
+              />
+            </div>
+
+            {/* Grid for Cover Image, Category, Tags */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-charcoal-500 flex items-center gap-1.5">
+                  <FiImage className="h-3.5 w-3.5" /> Cover Image URL
+                </label>
+                <input
+                  type="text"
+                  placeholder="https://example.com/image.jpg"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  className="w-full px-4 py-2 text-sm border border-charcoal-200 rounded-lg focus:outline-none focus:border-charcoal-900 transition-colors"
+                />
+                <div className="flex gap-2 mt-1">
+                  <span className="text-[10px] text-charcoal-400 font-bold self-center">Presets:</span>
+                  {PRESETS.map((p, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setImageUrl(p)}
+                      className="text-[10px] font-semibold text-indigo-600 hover:underline"
+                    >
+                      Image {idx + 1}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-charcoal-500">Category</label>
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-charcoal-200 rounded-lg focus:outline-none focus:border-charcoal-900 transition-colors bg-white font-semibold text-charcoal-800"
+                  >
+                    {CATEGORIES.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-charcoal-500">Tags</label>
+                  <input
+                    type="text"
+                    placeholder="tech, news, space"
+                    value={tagsInput}
+                    onChange={(e) => setTagsInput(e.target.value)}
+                    className="w-full px-4 py-2 text-sm border border-charcoal-200 rounded-lg focus:outline-none focus:border-charcoal-900 transition-colors"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Short Description */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-charcoal-500">Short Description</label>
+              <textarea
+                rows={2}
+                placeholder="Write a brief, catchy summary of the blog post..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full px-4 py-2 border border-charcoal-200 rounded-lg text-sm text-charcoal-700 focus:outline-none focus:border-charcoal-900 transition-colors resize-none"
+              />
+            </div>
+
+            {/* Blog Content */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-charcoal-500">Blog Content</label>
+              <textarea
+                rows={12}
+                placeholder="Write your story here... Feel free to use Markdown formatting."
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                className="w-full px-4 py-3 border border-charcoal-200 rounded-lg text-sm text-charcoal-800 font-mono focus:outline-none focus:border-charcoal-900 transition-colors"
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="p-6 space-y-6">
+            {/* Preview Cover Image */}
+            {imageUrl && (
+              <div className="relative aspect-[21/9] rounded-lg overflow-hidden border border-charcoal-100 bg-charcoal-50">
+                <img src={imageUrl} alt="Cover Preview" className="object-cover w-full h-full" />
+              </div>
+            )}
+
+            {/* Preview Metadata */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <span className="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider">
+                  {category}
+                </span>
+                <span className="text-xs text-charcoal-400 font-bold uppercase tracking-wider">
+                  {Math.max(1, Math.ceil((content ? content.split(/\s+/).length : 0) / 200))} MIN READ
+                </span>
+              </div>
+              <h1 className="font-serif text-3xl font-extrabold text-charcoal-950 leading-tight">
+                {title || "Untitled Blog Post"}
+              </h1>
+              <p className="text-charcoal-500 font-semibold text-sm italic">{description || "No description provided."}</p>
+            </div>
+
+            <hr className="border-charcoal-100" />
+
+            {/* Preview Content Body */}
+            <div className="prose prose-charcoal max-w-none text-charcoal-800 whitespace-pre-wrap leading-relaxed">
+              {content || "Start typing in the 'Write' tab to see content here."}
+            </div>
+
+            {/* Preview Tags */}
+            {tagsInput && (
+              <div className="flex flex-wrap gap-1.5 pt-4">
+                {tagsInput
+                  .split(",")
+                  .map((t) => t.trim())
+                  .filter((t) => t.length > 0)
+                  .map((t, idx) => (
+                    <span key={idx} className="bg-charcoal-50 text-charcoal-600 px-2 py-0.5 rounded text-xs font-semibold">
+                      #{t}
+                    </span>
+                  ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default BlogEditor;

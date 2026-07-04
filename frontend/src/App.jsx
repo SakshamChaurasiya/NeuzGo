@@ -15,6 +15,9 @@ const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Horoscope = lazy(() => import("./pages/Horoscope"));
+const BlogEditor = lazy(() => import("./pages/BlogEditor"));
+const BlogFeed = lazy(() => import("./pages/BlogFeed"));
+const BlogDetails = lazy(() => import("./pages/BlogDetails"));
 
 // Premium Loading Skeleton
 const PageSkeleton = () => (
@@ -44,6 +47,22 @@ function App() {
           <Route path="login" element={<Login />} />
           <Route path="signup" element={<Signup />} />
           <Route
+            path="blogs"
+            element={
+              <ProtectedRoute>
+                <BlogFeed />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="blogs/:id"
+            element={
+              <ProtectedRoute>
+                <BlogDetails />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="horoscope"
             element={
               <ProtectedRoute>
@@ -65,6 +84,22 @@ function App() {
             element={
               <ProtectedRoute>
                 <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="blogs/new"
+            element={
+              <ProtectedRoute>
+                <BlogEditor />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="blogs/edit/:id"
+            element={
+              <ProtectedRoute>
+                <BlogEditor />
               </ProtectedRoute>
             }
           />

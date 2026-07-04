@@ -72,7 +72,8 @@ const signup = async (req, res) => {
                 username: user.username,
                 email: user.email,
                 phoneNumber: user.phoneNumber,
-                zodiacSign: user.zodiacSign || ""
+                zodiacSign: user.zodiacSign || "",
+                role: user.role || "user"
             }
         });
     } catch (error) {
@@ -122,7 +123,8 @@ const login = async (req, res) => {
                 username: user.username,
                 email: user.email,
                 phoneNumber: user.phoneNumber,
-                zodiacSign: user.zodiacSign || ""
+                zodiacSign: user.zodiacSign || "",
+                role: user.role || "user"
             }
         });
     } catch (error) {
@@ -140,7 +142,8 @@ const getMe = async (req, res) => {
                 username: req.user.username,
                 email: req.user.email,
                 phoneNumber: req.user.phoneNumber,
-                zodiacSign: req.user.zodiacSign || ""
+                zodiacSign: req.user.zodiacSign || "",
+                role: req.user.role || "user"
             }
         });
     } catch (error) {
@@ -177,7 +180,8 @@ const updateZodiac = async (req, res) => {
                 username: user.username,
                 email: user.email,
                 phoneNumber: user.phoneNumber,
-                zodiacSign: user.zodiacSign
+                zodiacSign: user.zodiacSign,
+                role: user.role || "user"
             }
         });
     } catch (error) {
