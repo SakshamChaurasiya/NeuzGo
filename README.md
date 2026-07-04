@@ -1,6 +1,6 @@
-# NeuzGo — Premium News Platform
+# NeuzGo — Premium News & Community Platform
 
-NeuzGo is a premium independent news platform delivering curated, high-quality headlines and in-depth reporting from around the globe. It is built with a focus on readability, elegant design, and fast performance.
+NeuzGo is a premium independent news platform delivering curated, high-quality headlines and in-depth reporting from around the globe. It features a community blogging system where readers can become writers, and an admin moderation dashboard to maintain editorial quality. Built with a focus on readability, elegant design, and fast performance.
 
 ## Project Structure
 
@@ -10,12 +10,33 @@ The project is structured as a full-stack application using the MERN stack (Mong
 NeuzGo/
 ├── backend/                  # Express.js REST API
 │   ├── src/
+│   │   ├── config/           # Database connection and app configuration
 │   │   ├── controllers/      # Route logic
-│   │   ├── jobs/             # Scheduled background tasks (e.g., node-cron for news sync)
-│   │   ├── middlewares/      # Custom Express middleware (auth, error handling)
-│   │   ├── models/           # Mongoose schemas (User, Article, Bookmark, Horoscope)
+│   │   │   ├── auth.controller.js
+│   │   │   ├── news.controller.js
+│   │   │   ├── bookmark.controller.js
+│   │   │   ├── horoscope.controller.js
+│   │   │   ├── blog.controller.js
+│   │   │   └── adminBlog.controller.js
+│   │   ├── jobs/             # Scheduled background tasks (node-cron news sync)
+│   │   ├── middlewares/      # Custom Express middleware
+│   │   │   ├── authMiddleware.js   # JWT verification
+│   │   │   └── adminMiddleware.js  # Role-based access control (admin only)
+│   │   ├── models/           # Mongoose schemas
+│   │   │   ├── user.model.js           # User with role & zodiacSign fields
+│   │   │   ├── news.model.js
+│   │   │   ├── bookmark.model.js
+│   │   │   ├── blogs.model.js          # Blog with editorial workflow states
+│   │   │   └── translationCache.model.js
 │   │   ├── routes/           # API route definitions
-│   │   ├── service/          # Business logic and external integrations (e.g., TranslationLayer)
+│   │   │   ├── auth.routes.js
+│   │   │   ├── news.routes.js
+│   │   │   ├── bookmark.routes.js
+│   │   │   ├── horoscope.routes.js
+│   │   │   ├── blog.routes.js
+│   │   │   └── adminBlog.routes.js
+│   │   ├── service/          # Business logic and external integrations
+│   │   │   └── TranslationLayer/   # On-demand translation with SSE streaming
 │   │   ├── utils/            # Helper functions and utilities
 │   │   └── index.js          # Entry point and server configuration
 │   ├── package.json
@@ -24,10 +45,33 @@ NeuzGo/
 └── frontend/                 # React SPA (Vite)
     ├── src/
     │   ├── api/              # Axios client setup
-    │   ├── components/       # Reusable UI components (Navbar, Footer, HeroSlider)
+    │   ├── components/       # Reusable UI components
+    │   │   ├── Navbar.jsx
+    │   │   ├── HeroSlider.jsx
+    │   │   ├── ArticleCard.jsx
+    │   │   ├── BlogPostCard.jsx
+    │   │   ├── BlogSectionHeader.jsx
+    │   │   ├── FeaturedPostCard.jsx
+    │   │   ├── CategoryFilterPills.jsx
+    │   │   ├── ProtectedRoute.jsx
+    │   │   ├── ScrollToTop.jsx
+    │   │   └── Footer.jsx
     │   ├── contexts/         # React Context for global state (AuthContext, BookmarkContext)
+    │   ├── hooks/            # Custom React hooks
     │   ├── layouts/          # Page layouts (RootLayout)
-    │   ├── pages/            # View components mapping to routes (Home, Login, Search, etc.)
+    │   ├── pages/            # View components mapping to routes
+    │   │   ├── Home.jsx
+    │   │   ├── Category.jsx
+    │   │   ├── ArticleDetails.jsx
+    │   │   ├── Search.jsx
+    │   │   ├── Bookmarks.jsx
+    │   │   ├── Profile.jsx
+    │   │   ├── Horoscope.jsx
+    │   │   ├── BlogFeed.jsx
+    │   │   ├── BlogDetails.jsx
+    │   │   ├── BlogEditor.jsx
+    │   │   ├── Login.jsx
+    │   │   └── Signup.jsx
     │   ├── App.jsx           # Application routing (react-router-dom)
     │   ├── index.css         # Tailwind CSS styles and custom utility classes
     │   └── main.jsx          # Entry point
@@ -90,5 +134,6 @@ npm run dev
 Visit `http://localhost:5173` to view the application.
 
 ## Technologies Used
-**Backend:** Node.js, Express.js, MongoDB, Mongoose, JSON Web Tokens (JWT), Node-cron, Axios, Translation API.
+**Backend:** Node.js, Express.js, MongoDB, Mongoose, JSON Web Tokens (JWT), Node-cron, Axios, Translation API, Server-Sent Events (SSE).  
 **Frontend:** React 18, Vite, React Router DOM, Tailwind CSS v3, React Hot Toast, React Icons, Framer Motion.
+

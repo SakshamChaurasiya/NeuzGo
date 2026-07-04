@@ -1,6 +1,6 @@
 # NeuzGo Features
 
-NeuzGo is designed to offer a premium reading experience, robust user management, and seamless backend synchronization. Below is the comprehensive list of features implemented in the project.
+NeuzGo is designed to offer a premium reading experience, robust user management, a community blogging platform, and seamless backend synchronization. Below is the comprehensive list of features implemented in the project.
 
 ## Feature Overview
 
@@ -9,43 +9,65 @@ NeuzGo is designed to offer a premium reading experience, robust user management
 | **User Authentication** | JWT-based authentication flow with secure local storage. | ✅ |
 | | Full Registration (username, email, phone, password with validation). | ✅ |
 | | Login/Logout functionality with toast notifications. | ✅ |
-| | Protected routing to secure private pages like Bookmarks and Profile. | ✅ |
+| | Protected routing to secure private pages (Bookmarks, Profile, Horoscope, Blogs). | ✅ |
 | | Session validation on application load via `/api/auth/me`. | ✅ |
+| | Role-based access control (`user` / `admin` roles on User model). | ✅ |
+| | Zodiac sign stored on user profile for personalized horoscope reads. | ✅ |
 | **News Synchronization** | Automated `node-cron` job running periodically to fetch from GNews. | ✅ |
 | | Fallback provider using NewsData.io API if primary fetch fails. | ✅ |
 | | Intelligent News Refresh (configurable cache freshness, background sync). | ✅ |
+| | Dynamic backend-driven pagination with lazy API fetching per category. | ✅ |
 | | Bulk write operations to MongoDB to sync and update articles. | ✅ |
-| | Cleanup mechanism for deleting articles older than 30 days. | ✅ |
+| | Cleanup mechanism for stale articles — bookmarked articles are excluded from deletion. | ✅ |
 | | Robust error handling, logging, and rate limit strategies. | ✅ |
 | **Home Page** | Dynamic Hero Slider for top news stories with auto-advance and crossfade. | ✅ |
 | | "Breaking News" scrolling ticker using custom CSS marquee. | ✅ |
 | | "Trending Headlines" sidebar for quick access to popular stories. | ✅ |
-| | Sectioned category previews (Business, Technology, etc.). | ✅ |
-| | Dynamic backend-driven pagination with lazy API fetching. | ✅ |
+| | Sectioned category previews (Business, Technology, Sports, etc.). | ✅ |
 | **Search & Filtering** | Live, debounced search bar with a dropdown for instant suggestions. | ✅ |
 | | Full Search Results page with pagination. | ✅ |
 | | Category pages with dynamic filtering by Country and Language (includes Hindi). | ✅ |
-| **Article Reading Experience**| Premium, distraction-free article layout using elegant typography. | ✅ |
-| | Reading progress tracker bar at the top of the article. | ✅ |
+| | Session-based navigation state restoration (scroll position, pages, selected filters per category). | ✅ |
+| **Article Reading Experience** | Premium, distraction-free article layout using elegant typography. | ✅ |
+| | Reading progress tracker bar at the top of the article page. | ✅ |
 | | Social share links (Twitter, LinkedIn, Facebook, Direct Link). | ✅ |
 | | "Related Articles" sidebar populated via server-side category matching. | ✅ |
 | **Horoscope Module** | Daily zodiac readings with premium, animated celestial UI theme. | ✅ |
 | | Scoring-based article classifier to match articles to zodiac signs. | ✅ |
+| | Horoscope page is protected — requires user authentication. | ✅ |
 | **Translation Layer** | Scalable, on-demand Translation Layer in the backend. | ✅ |
-| | Progressive translation queue and streaming updates to the frontend for articles. | ✅ |
+| | Translations cached in MongoDB by article ID + language to avoid redundant API calls. | ✅ |
+| | Progressive translation queue with streaming SSE updates to the frontend. | ✅ |
+| **Community Blog Platform** | Users can create and save blog posts as drafts. | ✅ |
+| | Draft → Pending Review → Approved / Rejected editorial workflow. | ✅ |
+| | Auto-generated URL slug and estimated reading time calculated from content. | ✅ |
+| | Like / toggle-like system with per-user like tracking. | ✅ |
+| | Report blog posts for admin review. | ✅ |
+| | Unique view count tracking per visitor. | ✅ |
+| | Blog Feed page (editorial magazine-style) for approved posts. | ✅ |
+| | Blog Editor page with rich-text creation and editing flow. | ✅ |
+| | Blog Details page with full content, author info, and social interactions. | ✅ |
+| **Admin Dashboard** | Admin-only blog moderation panel (approve / reject / delete). | ✅ |
+| | `isAdmin` middleware enforces role-based access on all admin routes. | ✅ |
+| | Blog access control: only the post author or an admin can delete a blog post. | ✅ |
+| | Platform-wide statistics endpoint for admin reporting. | ✅ |
 | **Personalization** | Ability to bookmark and save articles to a personal reading list. | ✅ |
 | | Dedicated Bookmarks page to manage saved articles (with remove capability). | ✅ |
-| | Profile page displaying user stats (total bookmarks) and account details. | ✅ |
+| | Bookmarked articles are shielded from automatic cleanup jobs. | ✅ |
+| | Profile page displaying user stats (total bookmarks, zodiac sign) and account details. | ✅ |
 | **UI/UX Polish** | Skeleton loading animations during network requests. | ✅ |
-| | Session-based navigation state restoration (scroll position, pages, selected filters). | ✅ |
+| | Lazy-loaded pages via React `Suspense` for faster initial load. | ✅ |
 | | Responsive, mobile-first design using Tailwind CSS. | ✅ |
-| | Page-level fade-in animations. | ✅ |
+| | Page-level fade-in animations (Framer Motion). | ✅ |
 | | Optimized SEO tags and Open Graph metadata in `index.html`. | ✅ |
 
 ## Project Details
 
 **Architecture Strategy**
 NeuzGo employs an API-first backend that acts as a secure intermediary and caching layer. Instead of the frontend directly querying external news APIs (which exposes keys and risks rate limits), the backend independently syncs data into a local MongoDB database. The frontend then queries this local database.
+
+**Blog Editorial Workflow**
+User-authored content moves through a structured pipeline: `Draft → Pending Review → Approved / Rejected`. Only approved posts are visible on the public Blog Feed. Admins can moderate posts through a protected admin API. Access control is enforced at both the middleware and controller level — a user must be the original author or hold the `admin` role to delete a post.
 
 **Design System**
 The UI is strictly styled using a custom Tailwind CSS theme. It avoids generic colors in favor of a curated palette (Charcoal, Muted Blue, Warm Amber) and uses Google Fonts (Inter for UI, Merriweather for editorial text) to convey a professional, premium aesthetic.
