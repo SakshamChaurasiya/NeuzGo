@@ -83,3 +83,23 @@
 .skeleton {
   @apply bg-charcoal-100 animate-pulse rounded;
 }
+
+@keyframes likeBounce {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+@keyframes scaleUp {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+.animate-like {
+  animation: likeBounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+.animate-scale-up {
+  animation: scaleUp 0.3s ease-out both;
+}

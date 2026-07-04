@@ -229,6 +229,95 @@ const getBlogDetails = async (req, res) => {
     }
 };
 
+const toggleLike = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user._id;
+        const Blog = require("../models/blogs.model");
+
+        const blog = await Blog.findById(id);
+        if (!blog) {
+            return res.status(404).json({
+                success: false,
+                message: "Blog not found.",
+            });
+        }
+
+        const likedIndex = blog.likedBy.indexOf(userId);
+        let liked = false;
+        if (likedIndex > -1) {
+            blog.likedBy.splice(likedIndex, 1);
+            blog.likes = Math.max(0, blog.likes - 1);
+        } else {
+            blog.likedBy.push(userId);
+            blog.likes += 1;
+            liked = true;
+        }
+
+        await blog.save();
+
+        return res.status(200).json({
+            success: true,
+            liked,
+            likes: blog.likes,
+            message: liked ? "Blog liked." : "Blog unliked.",
+        });
+    } catch (error) {
+        console.error("Toggle like error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Server error toggling like.",
+        });
+    }
+};
+
+const reportBlog = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user._id;
+        const Blog = require("../models/blogs.model");
+
+        const blog = await Blog.findById(id);
+        if (!blog) {
+            return res.status(404).json({
+                success: false,
+                message: "Blog not found.",
+            });
+        }
+
+        if (blog.reportedBy.includes(userId)) {
+            return res.status(400).json({
+                success: false,
+                message: "You have already reported this blog.",
+            });
+        }
+
+        blog.reportedBy.push(userId);
+
+        let flagged = false;
+        if (blog.reportedBy.length >= 5) {
+            blog.status = "Pending";
+            flagged = true;
+        }
+
+        await blog.save();
+
+        return res.status(200).json({
+            success: true,
+            flagged,
+            message: flagged 
+                ? "Blog reported and flagged for admin review." 
+                : "Blog reported successfully.",
+        });
+    } catch (error) {
+        console.error("Report blog error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Server error reporting blog.",
+        });
+    }
+};
+
 module.exports = {
     createDraft,
     updateDraft,
@@ -237,4 +326,6 @@ module.exports = {
     submitForReview,
     getApprovedBlogs,
     getBlogDetails,
+    toggleLike,
+    reportBlog,
 };

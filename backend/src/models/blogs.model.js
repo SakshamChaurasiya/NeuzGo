@@ -62,6 +62,20 @@ const blogSchema = new mongoose.Schema(
             type: Number,
             default: 0,
         },
+        likedBy: {
+            type: [{
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "User",
+            }],
+            default: [],
+        },
+        reportedBy: {
+            type: [{
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "User",
+            }],
+            default: [],
+        },
         commentCount: {
             type: Number,
             default: 0,

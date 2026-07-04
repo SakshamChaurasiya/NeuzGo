@@ -8,6 +8,8 @@ const {
     submitForReview,
     getApprovedBlogs,
     getBlogDetails,
+    toggleLike,
+    reportBlog,
 } = require("../controllers/blog.controller");
 
 const router = express.Router();
@@ -22,5 +24,7 @@ router.post("/:id/submit", submitForReview);
 router.put("/:id", updateDraft);
 router.delete("/:id", deleteDraft);
 router.get("/:id", getBlogDetails);
+router.post("/:id/like", toggleLike);
+router.post("/:id/report", reportBlog);
 
 module.exports = router;
