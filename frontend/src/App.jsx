@@ -20,6 +20,7 @@ const Horoscope = lazy(() => import("./pages/Horoscope"));
 const BlogEditor = lazy(() => import("./pages/BlogEditor"));
 const BlogFeed = lazy(() => import("./pages/BlogFeed"));
 const BlogDetails = lazy(() => import("./pages/BlogDetails"));
+const SharedHoroscope = lazy(() => import("./pages/SharedHoroscope"));
 
 // Admin pages
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
@@ -57,6 +58,7 @@ function App() {
           <Route path="search" element={<Search />} />
           <Route path="login" element={<Login />} />
           <Route path="signup" element={<Signup />} />
+          <Route path="shared-horoscope" element={<SharedHoroscope />} />
           <Route
             path="blogs"
             element={

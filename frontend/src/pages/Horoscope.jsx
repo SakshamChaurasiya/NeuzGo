@@ -17,6 +17,7 @@ import {
 import apiClient from "../api/client";
 import ArticleCard from "../components/ArticleCard";
 import { useAuth } from "../contexts/AuthContext";
+import ShareHoroscopeCard from "../components/ShareHoroscopeCard";
 
 const ZODIAC_SIGNS = [
   { id: "aries", name: "Aries", symbol: "♈", icon: TbZodiacAries, dateRange: "Mar 21 - Apr 19" },
@@ -442,18 +443,21 @@ const Horoscope = () => {
               <div className="absolute -top-10 -right-10 w-40 h-40 bg-indigo-50/50 rounded-full blur-3xl pointer-events-none"></div>
               
               <div className="space-y-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-2xl bg-indigo-950 text-accent-amber flex items-center justify-center text-4xl shadow-md border border-indigo-900/35">
-                    {React.createElement(ZODIAC_SIGNS.find((z) => z.id === selectedSign)?.icon || TbZodiacAries, {
-                      className: "w-10 h-10 stroke-[1.25]"
-                    })}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 rounded-2xl bg-indigo-950 text-accent-amber flex items-center justify-center text-4xl shadow-md border border-indigo-900/35">
+                      {React.createElement(ZODIAC_SIGNS.find((z) => z.id === selectedSign)?.icon || TbZodiacAries, {
+                        className: "w-10 h-10 stroke-[1.25]"
+                      })}
+                    </div>
+                    <div>
+                      <h3 className="font-serif text-2xl font-black text-charcoal-950 uppercase tracking-wide">
+                        {selectedSign} Guidance
+                      </h3>
+                      <p className="text-xs font-semibold text-indigo-600/80 uppercase tracking-wider">Daily Transit Outlook</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-serif text-2xl font-black text-charcoal-950 uppercase tracking-wide">
-                      {selectedSign} Guidance
-                    </h3>
-                    <p className="text-xs font-semibold text-indigo-600/80 uppercase tracking-wider">Daily Transit Outlook</p>
-                  </div>
+                  <ShareHoroscopeCard selectedSign={selectedSign} horoscope={horoscope} />
                 </div>
                 
                 <p className="text-charcoal-800 text-lg md:text-xl leading-relaxed pt-2 font-serif font-light italic">
