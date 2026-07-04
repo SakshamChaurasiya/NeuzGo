@@ -12,9 +12,11 @@ NeuzGo/
 │   ├── src/
 │   │   ├── controllers/      # Route logic
 │   │   ├── jobs/             # Scheduled background tasks (e.g., node-cron for news sync)
-│   │   ├── middleware/       # Custom Express middleware (auth, error handling)
-│   │   ├── models/           # Mongoose schemas (User, Article, Bookmark)
+│   │   ├── middlewares/      # Custom Express middleware (auth, error handling)
+│   │   ├── models/           # Mongoose schemas (User, Article, Bookmark, Horoscope)
 │   │   ├── routes/           # API route definitions
+│   │   ├── service/          # Business logic and external integrations (e.g., TranslationLayer)
+│   │   ├── utils/            # Helper functions and utilities
 │   │   └── index.js          # Entry point and server configuration
 │   ├── package.json
 │   └── .env                  # Backend environment variables
@@ -88,5 +90,5 @@ npm run dev
 Visit `http://localhost:5173` to view the application.
 
 ## Technologies Used
-**Backend:** Node.js, Express.js, MongoDB, Mongoose, JSON Web Tokens (JWT), Node-cron, Axios.
+**Backend:** Node.js, Express.js, MongoDB, Mongoose, JSON Web Tokens (JWT), Node-cron, Axios, Translation API.
 **Frontend:** React 18, Vite, React Router DOM, Tailwind CSS v3, React Hot Toast, React Icons, Framer Motion.

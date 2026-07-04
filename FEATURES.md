@@ -21,7 +21,7 @@ NeuzGo is designed to offer a premium reading experience, robust user management
 | | "Breaking News" scrolling ticker using custom CSS marquee. | ✅ |
 | | "Trending Headlines" sidebar for quick access to popular stories. | ✅ |
 | | Sectioned category previews (Business, Technology, etc.). | ✅ |
-| | Server-side pagination for infinite scrolling/page navigation. | ✅ |
+| | Dynamic backend-driven pagination with lazy API fetching. | ✅ |
 | **Search & Filtering** | Live, debounced search bar with a dropdown for instant suggestions. | ✅ |
 | | Full Search Results page with pagination. | ✅ |
 | | Category pages with dynamic filtering by Country and Language (includes Hindi). | ✅ |
@@ -29,11 +29,15 @@ NeuzGo is designed to offer a premium reading experience, robust user management
 | | Reading progress tracker bar at the top of the article. | ✅ |
 | | Social share links (Twitter, LinkedIn, Facebook, Direct Link). | ✅ |
 | | "Related Articles" sidebar populated via server-side category matching. | ✅ |
+| **Horoscope Module** | Daily zodiac readings with premium, animated celestial UI theme. | ✅ |
+| | Scoring-based article classifier to match articles to zodiac signs. | ✅ |
+| **Translation Layer** | Scalable, on-demand Translation Layer in the backend. | ✅ |
+| | Progressive translation queue and streaming updates to the frontend for articles. | ✅ |
 | **Personalization** | Ability to bookmark and save articles to a personal reading list. | ✅ |
 | | Dedicated Bookmarks page to manage saved articles (with remove capability). | ✅ |
 | | Profile page displaying user stats (total bookmarks) and account details. | ✅ |
 | **UI/UX Polish** | Skeleton loading animations during network requests. | ✅ |
-| | Scroll position restoration on route changes. | ✅ |
+| | Session-based navigation state restoration (scroll position, pages, selected filters). | ✅ |
 | | Responsive, mobile-first design using Tailwind CSS. | ✅ |
 | | Page-level fade-in animations. | ✅ |
 | | Optimized SEO tags and Open Graph metadata in `index.html`. | ✅ |
