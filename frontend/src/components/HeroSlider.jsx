@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
 import { FiChevronLeft, FiChevronRight, FiBookmark } from "react-icons/fi";
 import { FaBookmark } from "react-icons/fa";
@@ -6,12 +6,15 @@ import { useBookmarks } from "../contexts/BookmarkContext";
 import { useAuth } from "../contexts/AuthContext";
 
 const SLIDE_INTERVAL = 5000; // 5 seconds
+const SWIPE_THRESHOLD = 50; // minimum distance in px to trigger swipe
 
 const HeroSlider = ({ articles = [] }) => {
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
   const { isBookmarked, addBookmark, removeBookmark } = useBookmarks();
   const { isAuthenticated } = useAuth();
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
 
   const slides = articles.slice(0, 5);
 
@@ -22,6 +25,30 @@ const HeroSlider = ({ articles = [] }) => {
   const prev = useCallback(() => {
     setCurrent((prev) => (prev - 1 + slides.length) % slides.length);
   }, [slides.length]);
+
+  // Touch handlers for swipe support
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX.current || !touchEndX.current) return;
+    const diff = touchStartX.current - touchEndX.current;
+    if (Math.abs(diff) > SWIPE_THRESHOLD) {
+      if (diff > 0) {
+        next();
+      } else {
+        prev();
+      }
+    }
+    // reset values
+    touchStartX.current = 0;
+    touchEndX.current = 0;
+  };
 
   // Auto-advance
   useEffect(() => {
@@ -58,9 +85,12 @@ const HeroSlider = ({ articles = [] }) => {
 
   return (
     <div
-      className="relative w-full overflow-hidden rounded-xl bg-charcoal-950 min-h-[300px] sm:min-h-[380px] md:min-h-[440px] lg:min-h-[520px] group"
+      className="relative w-full overflow-hidden rounded-xl bg-charcoal-950 min-h-[320px] sm:min-h-[380px] md:min-h-[440px] lg:min-h-[520px] group touch-pan-y"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       {/* Background images — stack all and fade the active one */}
       {slides.map((art, idx) => (
@@ -83,7 +113,7 @@ const HeroSlider = ({ articles = [] }) => {
       ))}
 
       {/* Content — always shows active article */}
-      <div className="relative flex flex-col justify-end h-full min-h-[300px] sm:min-h-[380px] md:min-h-[440px] lg:min-h-[520px] p-5 sm:p-10 space-y-3 sm:space-y-4">
+      <div className="relative flex flex-col justify-end h-full min-h-[320px] sm:min-h-[380px] md:min-h-[440px] lg:min-h-[520px] p-5 sm:p-10 space-y-3 sm:space-y-4">
         {/* Category badge */}
         <span className="bg-gray-100/40 text-gray-600 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-sm w-fit"> 
           {article.category} 
@@ -110,7 +140,8 @@ const HeroSlider = ({ articles = [] }) => {
           </div>
           <button
             onClick={(e) => handleBookmark(e, article._id)}
-            className="p-2 rounded-full hover:bg-white/10 text-white hover:text-accent-amber transition-colors"
+            className="p-3 -m-3 rounded-full hover:bg-white/10 text-white hover:text-accent-amber transition-colors touch-manipulation"
+            aria-label="Bookmark"
           >
             {isBookmarked(article._id) ? (
               <FaBookmark className="h-4.5 w-4.5 text-accent-amber" />
@@ -122,18 +153,24 @@ const HeroSlider = ({ articles = [] }) => {
 
         {/* Dot navigation */}
         <div className="flex items-center gap-2 pt-2">
-          {slides.map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => setCurrent(idx)}
-              className={`rounded-full transition-all duration-300 ${
-                idx === current
-                  ? "bg-white w-6 h-2"
-                  : "bg-white/40 hover:bg-white/60 w-2 h-2"
-              }`}
-              aria-label={`Go to slide ${idx + 1}`}
-            />
-          ))}
+          <div className="flex items-center gap-1.5 -ml-1">
+            {slides.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCurrent(idx)}
+                className="p-1.5 focus:outline-none touch-manipulation"
+                aria-label={`Go to slide ${idx + 1}`}
+              >
+                <div
+                  className={`rounded-full transition-all duration-300 ${
+                    idx === current
+                      ? "bg-white w-6 h-2"
+                      : "bg-white/40 hover:bg-white/60 w-2 h-2"
+                  }`}
+                />
+              </button>
+            ))}
+          </div>
 
           {/* Slide counter */}
           <span className="ml-auto text-xs font-semibold text-charcoal-400">

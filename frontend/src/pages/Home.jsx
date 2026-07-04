@@ -210,19 +210,19 @@ const Home = () => {
   const remainingArticles = currentPage === 1 ? newsFeed.slice(5) : newsFeed;
 
   return (
-    <div className="space-y-16">
+    <div className="space-y-10 sm:space-y-16">
       {/* Welcome Header & Reading Language Selector */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-charcoal-200 pb-6 gap-6">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-charcoal-200 pb-5 sm:pb-6 gap-4">
         <div>
-          <span className="text-xs font-bold tracking-widest text-accent-blue uppercase mb-1.5 block">
+          <span className="text-xs font-bold tracking-widest text-accent-blue uppercase mb-1 block">
             Welcome to NeuzGo
           </span>
-          <h1 className="font-serif text-4xl font-extrabold capitalize text-charcoal-950">
+          <h1 className="font-serif text-3xl sm:text-4xl font-extrabold capitalize text-charcoal-950">
             Top Headlines
           </h1>
         </div>
 
-        <div className="flex items-center gap-2" title="Reading Language">
+        <div className="flex items-center gap-2 self-start sm:self-auto" title="Reading Language">
           <FiFilter className="text-charcoal-400 h-4 w-4" />
           <select
             value={language}
@@ -233,7 +233,7 @@ const Home = () => {
               const langName = LANGUAGES.find((l) => l.code === newLang)?.name || newLang;
               toast.success(`Reading language changed to ${langName}`);
             }}
-            className="bg-white border border-charcoal-200 rounded px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:border-charcoal-900 transition-colors"
+            className="bg-white border border-charcoal-200 rounded px-2.5 py-2 text-xs font-medium focus:outline-none focus:border-charcoal-900 transition-colors touch-manipulation"
             aria-label="Reading Language"
           >
             {LANGUAGES.map((l) => (
@@ -247,12 +247,12 @@ const Home = () => {
 
       {/* Breaking News Marquee */}
       {newsFeed.length > 0 && (
-        <div className="w-full bg-charcoal-900 text-white py-3 px-4 rounded overflow-hidden flex items-center gap-4 text-xs font-semibold uppercase tracking-wider">
-          <span className="bg-accent-amber text-charcoal-950 px-2 py-0.5 rounded-xs shrink-0">
+        <div className="w-full bg-charcoal-900 text-white py-3 px-4 rounded overflow-hidden flex items-center gap-3 sm:gap-4 text-xs font-semibold uppercase tracking-wider">
+          <span className="bg-accent-amber text-charcoal-950 px-2 py-0.5 rounded-xs shrink-0 text-[10px] sm:text-xs">
             Breaking
           </span>
           <div className="relative flex overflow-x-hidden w-full">
-            <div className="animate-marquee whitespace-nowrap flex gap-12">
+            <div className="animate-marquee whitespace-nowrap flex gap-8 sm:gap-12">
               {newsFeed.slice(0, 3).map((art, idx) => (
                 <Link key={art._id || idx} to={`/article/${art._id}`} className="hover:text-accent-amber transition-colors">
                   {art.title}
@@ -265,8 +265,8 @@ const Home = () => {
 
       {/* Hero Slider + Trending Sidebar */}
       {loadingFeed ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 min-h-[420px] skeleton rounded-xl"></div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+          <div className="lg:col-span-2 min-h-[320px] sm:min-h-[420px] skeleton rounded-xl"></div>
           <div className="space-y-4">
             <div className="h-8 skeleton w-1/2"></div>
             {[1, 2, 3, 4].map((i) => (
@@ -276,21 +276,21 @@ const Home = () => {
         </div>
       ) : (
         newsFeed.length > 0 && currentPage === 1 && (
-          <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
             {/* Hero Slider — spans 2 of 3 columns */}
             <div className="lg:col-span-2">
               <HeroSlider articles={sliderArticles} />
             </div>
 
             {/* Trending Sidebar */}
-            <div className="border border-charcoal-100 rounded-xl p-6 flex flex-col lg:col-span-1">
-              <h3 className="font-serif text-xl font-extrabold text-charcoal-900 border-b border-charcoal-100 pb-3 mb-4">
+            <div className="border border-charcoal-100 rounded-xl p-5 sm:p-6 flex flex-col lg:col-span-1">
+              <h3 className="font-serif text-lg sm:text-xl font-extrabold text-charcoal-900 border-b border-charcoal-100 pb-3 mb-3">
                 Trending Headlines
               </h3>
               <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-x-6 gap-y-1 divide-y sm:divide-y-0 lg:divide-y divide-charcoal-100">
                 {trendingArticles.map((art, idx) => (
-                  <div key={art._id} className="py-3.5 first:pt-0 last:pb-0 sm:first:pt-3.5 sm:py-2 lg:first:pt-0 lg:py-3.5 border-b last:border-b-0 sm:border-b-0 lg:border-b last:pb-0 border-charcoal-100">
-                    <span className="font-serif text-3xl font-black text-charcoal-200 block leading-none mb-1">
+                  <div key={art._id} className="py-3 first:pt-0 last:pb-0 sm:first:pt-3 sm:py-2 lg:first:pt-0 lg:py-3.5 border-b last:border-b-0 sm:border-b-0 lg:border-b last:pb-0 border-charcoal-100">
+                    <span className="font-serif text-2xl sm:text-3xl font-black text-charcoal-200 block leading-none mb-1">
                       0{idx + 1}
                     </span>
                     <Link
@@ -303,7 +303,8 @@ const Home = () => {
                       <span>{art.source?.name}</span>
                       <button
                         onClick={(e) => handleBookmarkToggle(e, art._id)}
-                        className="hover:text-accent-amber"
+                        className="p-1.5 -m-1.5 hover:text-accent-amber touch-manipulation"
+                        aria-label="Bookmark"
                       >
                         {isBookmarked(art._id) ? (
                           <FaBookmark className="h-3.5 w-3.5 text-accent-amber" />
@@ -321,16 +322,16 @@ const Home = () => {
       )}
 
       {/* Popular Categories Showcase */}
-      <section className="space-y-12">
+      <section className="space-y-10 sm:space-y-12">
         {/* Business Section */}
         <div>
-          <div className="flex items-center justify-between border-b border-charcoal-200 pb-4 mb-6">
-            <h3 className="font-serif text-2xl font-extrabold text-charcoal-900">
+          <div className="flex items-center justify-between border-b border-charcoal-200 pb-3 sm:pb-4 mb-5 sm:mb-6">
+            <h3 className="font-serif text-xl sm:text-2xl font-extrabold text-charcoal-900">
               Business & Markets
             </h3>
             <Link
               to="/category/business"
-              className="text-xs font-bold tracking-wider text-charcoal-600 hover:text-charcoal-900 flex items-center gap-1 uppercase"
+              className="text-xs font-bold tracking-wider text-charcoal-600 hover:text-charcoal-900 flex items-center gap-1 uppercase block py-2 touch-manipulation"
             >
               View All <FiArrowRight className="h-4 w-4" />
             </Link>
@@ -352,13 +353,13 @@ const Home = () => {
 
         {/* Technology Section */}
         <div>
-          <div className="flex items-center justify-between border-b border-charcoal-200 pb-4 mb-6">
-            <h3 className="font-serif text-2xl font-extrabold text-charcoal-900">
+          <div className="flex items-center justify-between border-b border-charcoal-200 pb-3 sm:pb-4 mb-5 sm:mb-6">
+            <h3 className="font-serif text-xl sm:text-2xl font-extrabold text-charcoal-900">
               Tech & Innovation
             </h3>
             <Link
               to="/category/technology"
-              className="text-xs font-bold tracking-wider text-charcoal-600 hover:text-charcoal-900 flex items-center gap-1 uppercase"
+              className="text-xs font-bold tracking-wider text-charcoal-600 hover:text-charcoal-900 flex items-center gap-1 uppercase block py-2 touch-manipulation"
             >
               View All <FiArrowRight className="h-4 w-4" />
             </Link>
@@ -380,9 +381,9 @@ const Home = () => {
       </section>
 
       {/* Main Latest News Feed */}
-      <section className="space-y-8">
-        <div className="border-b border-charcoal-200 pb-4">
-          <h3 className="font-serif text-2xl font-extrabold text-charcoal-900">
+      <section className="space-y-6 sm:space-y-8">
+        <div className="border-b border-charcoal-200 pb-3 sm:pb-4">
+          <h3 className="font-serif text-xl sm:text-2xl font-extrabold text-charcoal-900">
             Latest Reporting
           </h3>
         </div>
@@ -409,11 +410,11 @@ const Home = () => {
 
             {/* Pagination Controls */}
             {(totalPages > 1 || hasNext) && (
-              <div className="flex items-center justify-center gap-2 pt-8">
+              <div className="flex items-center justify-center gap-4 pt-6 sm:pt-8 border-t border-charcoal-100">
                 <button
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                  className="px-4 py-2 text-xs font-bold border border-charcoal-200 rounded hover:bg-charcoal-50 disabled:opacity-50 transition-colors uppercase tracking-wider"
+                  className="px-5 py-3 text-xs font-bold border border-charcoal-200 rounded-lg hover:bg-charcoal-50 disabled:opacity-50 transition-colors uppercase tracking-wider touch-manipulation min-w-[100px]"
                 >
                   Previous
                 </button>
@@ -425,7 +426,7 @@ const Home = () => {
                 <button
                   disabled={!hasNext}
                   onClick={() => setCurrentPage((prev) => prev + 1)}
-                  className="px-4 py-2 text-xs font-bold border border-charcoal-200 rounded hover:bg-charcoal-50 disabled:opacity-50 transition-colors uppercase tracking-wider"
+                  className="px-5 py-3 text-xs font-bold border border-charcoal-200 rounded-lg hover:bg-charcoal-50 disabled:opacity-50 transition-colors uppercase tracking-wider touch-manipulation min-w-[100px]"
                 >
                   Next
                 </button>

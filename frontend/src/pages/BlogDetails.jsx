@@ -142,11 +142,11 @@ const BlogDetails = () => {
   const canDelete = isAuthor || isAdmin;
 
   return (
-    <article className="max-w-3xl mx-auto py-12 px-4 space-y-8">
+    <article className="max-w-3xl mx-auto py-6 sm:py-12 px-4 space-y-6 sm:space-y-8">
       {/* Back Button */}
       <button
         onClick={() => navigate("/blogs")}
-        className="flex items-center gap-2 text-sm font-semibold text-charcoal-600 hover:text-charcoal-900 transition-colors"
+        className="flex items-center gap-2 text-sm font-semibold text-charcoal-600 hover:text-charcoal-900 transition-colors py-2 touch-manipulation"
       >
         <FiArrowLeft className="h-4 w-4" /> Back to Journal
       </button>
@@ -164,7 +164,7 @@ const BlogDetails = () => {
 
       {/* Header Info */}
       <div className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-charcoal-100">
           <div className="flex flex-wrap items-center gap-3">
             <span className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded text-xs font-bold uppercase tracking-wider">
               {blog.category}
@@ -177,11 +177,11 @@ const BlogDetails = () => {
             </span>
           </div>
 
-            {/* Action Buttons */}
-          <div className="flex items-center gap-4">
+          {/* Action Buttons */}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
             <button
               onClick={handleLike}
-              className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer ${
+              className={`flex items-center gap-1.5 py-2 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer touch-manipulation ${
                 hasLiked ? "text-red-500 hover:text-red-600" : "text-charcoal-400 hover:text-charcoal-600"
               }`}
               aria-label={hasLiked ? "Unlike blog post" : "Like blog post"}
@@ -191,13 +191,13 @@ const BlogDetails = () => {
               ) : (
                 <FiHeart className={`h-4 w-4 ${likeAnimated ? "animate-like" : ""}`} />
               )}
-              <span>{blog.likes || 0} Likes</span>
+              <span>{blog.likes || 0}</span>
             </button>
 
             <button
               onClick={handleReport}
               disabled={hasReported}
-              className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer ${
+              className={`flex items-center gap-1.5 py-2 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer touch-manipulation ${
                 hasReported ? "text-amber-500 cursor-not-allowed" : "text-charcoal-400 hover:text-red-500"
               }`}
               aria-label="Report blog post"
@@ -208,7 +208,7 @@ const BlogDetails = () => {
 
             <button
               onClick={handleShare}
-              className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-charcoal-400 hover:text-indigo-600 transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 py-2 text-xs font-bold uppercase tracking-wider text-charcoal-400 hover:text-indigo-600 transition-colors cursor-pointer touch-manipulation"
               aria-label="Share blog post"
             >
               <FiShare2 className="h-4 w-4" />
@@ -218,7 +218,7 @@ const BlogDetails = () => {
             {canDelete && (
               <button
                 onClick={handleDelete}
-                className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-charcoal-400 hover:text-red-600 transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 py-2 text-xs font-bold uppercase tracking-wider text-charcoal-400 hover:text-red-600 transition-colors cursor-pointer touch-manipulation"
                 aria-label="Delete blog post"
               >
                 <FiTrash2 className="h-4 w-4" />
@@ -228,16 +228,16 @@ const BlogDetails = () => {
           </div>
         </div>
 
-        <h1 className="font-serif text-3xl sm:text-4xl font-extrabold text-charcoal-950 leading-tight">
+        <h1 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-extrabold text-charcoal-950 leading-tight">
           {blog.title}
         </h1>
 
-        <div className="flex items-center gap-3 pt-2 text-sm text-charcoal-500 font-semibold">
+        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 text-xs sm:text-sm text-charcoal-500 font-semibold">
           <span className="flex items-center gap-1.5 text-charcoal-700">
             <FiUser className="h-4 w-4" />
             {blog.author?.username || "Writer"}
           </span>
-          <span>•</span>
+          <span className="text-charcoal-350">•</span>
           <span className="flex items-center gap-1.5">
             <FiCalendar className="h-4 w-4" />
             {formatDate(blog.publishedAt || blog.createdAt)}
@@ -249,13 +249,13 @@ const BlogDetails = () => {
 
       {/* Description / Summary */}
       {blog.description && (
-        <p className="font-serif text-lg text-charcoal-600 leading-relaxed italic border-l-4 border-indigo-200 pl-4 py-1">
+        <p className="font-serif text-base sm:text-lg text-charcoal-600 leading-relaxed italic border-l-4 border-indigo-200 pl-4 py-1">
           {blog.description}
         </p>
       )}
 
       {/* Content Body */}
-      <div className="prose prose-charcoal max-w-none text-charcoal-800 text-base leading-relaxed whitespace-pre-wrap">
+      <div className="prose prose-charcoal max-w-none text-charcoal-800 text-sm sm:text-base leading-relaxed sm:leading-loose whitespace-pre-wrap font-sans">
         {blog.content}
       </div>
 
@@ -265,7 +265,7 @@ const BlogDetails = () => {
           {blog.tags.map((tag, idx) => (
             <span
               key={idx}
-              className="bg-charcoal-50 text-charcoal-600 px-3 py-1 rounded text-xs font-semibold hover:bg-charcoal-100 transition-colors"
+              className="bg-charcoal-50 text-charcoal-600 px-3 py-1.5 rounded text-xs font-semibold hover:bg-charcoal-100 transition-colors touch-manipulation"
             >
               #{tag}
             </span>

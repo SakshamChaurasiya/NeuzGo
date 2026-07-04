@@ -63,13 +63,13 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-[70vh] flex items-center justify-center px-4 py-16">
-      <div className="w-full max-w-md space-y-10">
+    <div className="min-h-[60vh] sm:min-h-[70vh] flex items-center justify-center px-4 py-8 sm:py-16">
+      <div className="w-full max-w-md space-y-8 sm:space-y-10">
         {/* Header */}
         <div className="text-center space-y-2">
           <span className="font-serif text-3xl font-black tracking-tight text-charcoal-900 block">NEUZGO</span>
           <h1 className="font-serif text-2xl font-bold text-charcoal-900">Create Your Account</h1>
-          <p className="text-sm text-charcoal-500">Join NeuzGo to save articles and personalize your reading experience.</p>
+          <p className="text-sm text-charcoal-500 max-w-xs mx-auto">Join NeuzGo to save articles and personalize your reading experience.</p>
         </div>
 
         {/* Signup Form */}
@@ -88,7 +88,7 @@ const Signup = () => {
                 onChange={handleChange("username")}
                 placeholder="johndoe"
                 required
-                className="w-full pl-10 pr-4 py-3 text-sm bg-white border border-charcoal-200 rounded-lg focus:outline-none focus:border-charcoal-900 transition-colors"
+                className="w-full pl-10 pr-4 py-3.5 text-sm sm:text-base bg-white border border-charcoal-200 rounded-lg focus:outline-none focus:border-charcoal-900 transition-colors touch-manipulation"
               />
             </div>
           </div>
@@ -107,7 +107,7 @@ const Signup = () => {
                 onChange={handleChange("email")}
                 placeholder="you@example.com"
                 required
-                className="w-full pl-10 pr-4 py-3 text-sm bg-white border border-charcoal-200 rounded-lg focus:outline-none focus:border-charcoal-900 transition-colors"
+                className="w-full pl-10 pr-4 py-3.5 text-sm sm:text-base bg-white border border-charcoal-200 rounded-lg focus:outline-none focus:border-charcoal-900 transition-colors touch-manipulation"
               />
             </div>
           </div>
@@ -127,7 +127,7 @@ const Signup = () => {
                 placeholder="10-digit number"
                 maxLength={10}
                 required
-                className="w-full pl-10 pr-4 py-3 text-sm bg-white border border-charcoal-200 rounded-lg focus:outline-none focus:border-charcoal-900 transition-colors"
+                className="w-full pl-10 pr-4 py-3.5 text-sm sm:text-base bg-white border border-charcoal-200 rounded-lg focus:outline-none focus:border-charcoal-900 transition-colors touch-manipulation"
               />
             </div>
             <p className="text-[11px] text-charcoal-400">Must be exactly 10 digits (e.g. 9876543210)</p>
@@ -147,12 +147,13 @@ const Signup = () => {
                 onChange={handleChange("password")}
                 placeholder="Min. 6 characters"
                 required
-                className="w-full pl-10 pr-12 py-3 text-sm bg-white border border-charcoal-200 rounded-lg focus:outline-none focus:border-charcoal-900 transition-colors"
+                className="w-full pl-10 pr-12 py-3.5 text-sm sm:text-base bg-white border border-charcoal-200 rounded-lg focus:outline-none focus:border-charcoal-900 transition-colors touch-manipulation"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-charcoal-400 hover:text-charcoal-700 transition-colors"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 p-2 text-charcoal-400 hover:text-charcoal-700 transition-colors touch-manipulation"
+                aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? <FiEyeOff className="h-4.5 w-4.5" /> : <FiEye className="h-4.5 w-4.5" />}
               </button>
@@ -173,12 +174,13 @@ const Signup = () => {
                 onChange={handleChange("confirmPassword")}
                 placeholder="Repeat your password"
                 required
-                className="w-full pl-10 pr-12 py-3 text-sm bg-white border border-charcoal-200 rounded-lg focus:outline-none focus:border-charcoal-900 transition-colors"
+                className="w-full pl-10 pr-12 py-3.5 text-sm sm:text-base bg-white border border-charcoal-200 rounded-lg focus:outline-none focus:border-charcoal-900 transition-colors touch-manipulation"
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-charcoal-400 hover:text-charcoal-700 transition-colors"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 p-2 text-charcoal-400 hover:text-charcoal-700 transition-colors touch-manipulation"
+                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
               >
                 {showConfirmPassword ? <FiEyeOff className="h-4.5 w-4.5" /> : <FiEye className="h-4.5 w-4.5" />}
               </button>
@@ -189,7 +191,7 @@ const Signup = () => {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-3 bg-charcoal-950 text-white text-sm font-bold rounded-lg hover:bg-charcoal-800 transition-colors disabled:opacity-60 flex items-center justify-center gap-2 mt-2"
+            className="w-full py-3.5 bg-charcoal-950 text-white text-sm font-bold rounded-lg hover:bg-charcoal-800 transition-colors disabled:opacity-60 flex items-center justify-center gap-2 mt-2 touch-manipulation"
           >
             {submitting ? (
               <>
@@ -206,7 +208,7 @@ const Signup = () => {
         <div className="text-center border-t border-charcoal-100 pt-6">
           <p className="text-sm text-charcoal-500">
             Already have an account?{" "}
-            <Link to="/login" className="font-bold text-charcoal-900 hover:text-accent-blue transition-colors">
+            <Link to="/login" className="font-bold text-charcoal-900 hover:text-accent-blue transition-colors block sm:inline mt-1 sm:mt-0 py-2 sm:py-0 touch-manipulation">
               Sign in
             </Link>
           </p>

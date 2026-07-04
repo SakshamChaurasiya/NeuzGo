@@ -231,18 +231,18 @@ const ArticleDetails = () => {
 
   return (
     <>
-      {/* Reading Progress Bar (Fixed just below sticky header) */}
-      <div className="fixed top-20 left-0 w-full h-[3px] bg-charcoal-100 z-50">
+      {/* Reading Progress Bar (Fixed just below sticky header — h-16/top-16 on mobile, h-20/top-20 on sm+) */}
+      <div className="fixed top-16 sm:top-20 left-0 w-full h-[3px] bg-charcoal-100 z-50">
         <div
           className="h-full bg-accent-amber transition-all duration-75"
           style={{ width: `${scrollProgress}%` }}
         ></div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+      <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
           {/* Article Main Content (680px max-width reading column) */}
-          <article className="lg:col-span-8 space-y-8 max-w-article mx-auto lg:mx-0">
+          <article className="lg:col-span-8 space-y-6 sm:space-y-8 max-w-article mx-auto lg:mx-0 px-4 sm:px-0">
             {/* Category Breadcrumb */}
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-accent-blue">
               <Link to="/" className="hover:underline text-charcoal-400">Home</Link>
@@ -253,7 +253,7 @@ const ArticleDetails = () => {
             </div>
 
             {/* Headline */}
-            <h1 className="font-serif text-3xl sm:text-5xl font-extrabold text-charcoal-950 leading-tight">
+            <h1 className="font-serif text-2xl sm:text-4xl lg:text-5xl font-extrabold text-charcoal-950 leading-tight">
               {article.translationPending ? (
                 <div className="h-12 bg-charcoal-100 skeleton w-full"></div>
               ) : (
@@ -262,7 +262,7 @@ const ArticleDetails = () => {
             </h1>
 
             {article.originalLanguage && article.language && article.originalLanguage !== article.language && (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-charcoal-50 border border-charcoal-150 rounded text-xs text-charcoal-600 font-medium">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-charcoal-50 border border-charcoal-150 rounded text-xs text-charcoal-600 font-medium">
                 <span className="w-1.5 h-1.5 bg-accent-blue rounded-full"></span>
                 Original: <span className="font-semibold">{getLanguageName(article.originalLanguage)}</span>
                 <span className="text-charcoal-300">|</span>
@@ -272,7 +272,7 @@ const ArticleDetails = () => {
 
             {/* Author, Date & Actions Info */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-y border-charcoal-100 gap-4">
-              <div className="flex flex-wrap items-center gap-4 text-xs text-charcoal-500">
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-charcoal-500">
                 <span className="flex items-center gap-1.5">
                   <FiUser className="h-4 w-4" />
                   {article.author || "Unknown"}
@@ -288,7 +288,7 @@ const ArticleDetails = () => {
               <div className="flex items-center gap-3">
                 <button
                   onClick={handleBookmarkToggle}
-                  className="flex items-center gap-1.5 px-3 py-1.5 border border-charcoal-200 rounded text-xs font-semibold hover:bg-charcoal-50 transition-colors"
+                  className="flex items-center gap-1.5 px-4 py-2.5 sm:px-3 sm:py-1.5 border border-charcoal-200 rounded-lg text-xs font-semibold hover:bg-charcoal-50 transition-colors touch-manipulation"
                   aria-label="Bookmark"
                 >
                   {bookmarked ? (
@@ -305,7 +305,7 @@ const ArticleDetails = () => {
                 </button>
                 <button
                   onClick={handleShare}
-                  className="flex items-center gap-1.5 px-3 py-1.5 border border-charcoal-200 rounded text-xs font-semibold hover:bg-charcoal-50 transition-colors text-charcoal-700"
+                  className="flex items-center gap-1.5 px-4 py-2.5 sm:px-3 sm:py-1.5 border border-charcoal-200 rounded-lg text-xs font-semibold hover:bg-charcoal-50 transition-colors text-charcoal-700 touch-manipulation"
                   aria-label="Share"
                 >
                   <FiShare2 className="h-3.5 w-3.5" />
@@ -315,7 +315,7 @@ const ArticleDetails = () => {
             </div>
 
             {/* Feature Image */}
-            <div className="aspect-video w-full overflow-hidden rounded bg-charcoal-50">
+            <div className="aspect-video w-full overflow-hidden rounded-lg bg-charcoal-50">
               <img
                 src={article.imageUrl || "https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1200&q=80"}
                 alt={article.title}
@@ -324,7 +324,7 @@ const ArticleDetails = () => {
             </div>
 
             {/* Source Attribution */}
-            <p className="text-xs text-charcoal-450 italic">
+            <p className="text-xs text-charcoal-450 italic px-1 sm:px-0">
               Reported by <span className="font-semibold">{article.source?.name}</span>. Original coverage can be found at{" "}
               <a
                 href={article.articleUrl}
@@ -344,14 +344,14 @@ const ArticleDetails = () => {
                   <div className="h-5 bg-charcoal-100 skeleton w-5/6"></div>
                 </div>
               ) : (
-                <p className="font-sans text-lg text-charcoal-800 leading-relaxed font-semibold">
+                <p className="font-sans text-base sm:text-lg text-charcoal-800 leading-relaxed font-semibold">
                   {article.description}
                 </p>
               )}
             </div>
 
-            {/* Article Content Body (High-quality serif font, comfortable spacing) */}
-            <div className="font-serif text-lg text-charcoal-850 leading-loose space-y-6 pt-4">
+            {/* Article Content Body (High-quality serif font, comfortable spacing scaled for mobile) */}
+            <div className="font-serif text-base sm:text-lg text-charcoal-850 leading-relaxed sm:leading-loose space-y-6 pt-2 sm:pt-4">
               {article.translationPending ? (
                 <div className="space-y-4">
                   <div className="h-5 bg-charcoal-100 skeleton w-full"></div>
@@ -371,15 +371,15 @@ const ArticleDetails = () => {
           </article>
 
           {/* Related Articles Sidebar Column (4 grid units width) */}
-          <aside className="lg:col-span-4 space-y-8 border-t lg:border-t-0 lg:border-l border-charcoal-100 pt-8 lg:pt-0 lg:pl-8">
-            <h3 className="font-serif text-xl font-extrabold text-charcoal-900 pb-3 border-b border-charcoal-100 mt-5">
+          <aside className="lg:col-span-4 space-y-6 sm:space-y-8 border-t lg:border-t-0 lg:border-l border-charcoal-100 pt-6 sm:pt-8 lg:pt-0 lg:pl-8 px-4 sm:px-6 lg:px-0">
+            <h3 className="font-serif text-lg sm:text-xl font-extrabold text-charcoal-900 pb-3 border-b border-charcoal-100 mt-2 lg:mt-5">
               Related Coverage
             </h3>
 
             {related.length === 0 ? (
               <p className="text-sm text-charcoal-400">No related articles found.</p>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-6">
                 {related.map((art) => (
                   <ArticleCard key={art._id} article={art} />
                 ))}
@@ -393,7 +393,7 @@ const ArticleDetails = () => {
       {showScrollTop && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-6 right-6 p-3 bg-charcoal-900 text-white rounded-full shadow-lg hover:bg-charcoal-800 hover:scale-105 transition-all duration-200 z-40"
+          className="fixed bottom-6 right-6 p-3 bg-charcoal-900 text-white rounded-full shadow-lg hover:bg-charcoal-800 hover:scale-105 transition-all duration-200 z-40 touch-manipulation"
           aria-label="Scroll to top"
         >
           <FiArrowUp className="h-5 w-5" />

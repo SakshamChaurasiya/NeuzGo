@@ -189,18 +189,18 @@ const Profile = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto py-12 px-4 space-y-12">
+    <div className="max-w-4xl mx-auto py-6 sm:py-12 px-4 space-y-8 sm:space-y-12">
       {/* Profile Header */}
-      <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-6 justify-between border-b border-charcoal-100 pb-8">
-        <div className="flex flex-col sm:flex-row items-center gap-6">
-          <div className="h-20 w-20 rounded-full bg-charcoal-950 flex items-center justify-center shrink-0">
-            <span className="font-serif text-3xl font-bold text-white uppercase">
+      <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-4 sm:gap-6 justify-between border-b border-charcoal-100 pb-6 sm:pb-8">
+        <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+          <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-charcoal-950 flex items-center justify-center shrink-0">
+            <span className="font-serif text-2xl sm:text-3xl font-bold text-white uppercase">
               {user?.username?.charAt(0) || "?"}
             </span>
           </div>
           <div>
-            <h1 className="font-serif text-3xl font-extrabold text-charcoal-950">{user?.username}</h1>
-            <p className="text-sm text-charcoal-500 mt-0.5">{user?.email}</p>
+            <h1 className="font-serif text-2xl sm:text-3xl font-extrabold text-charcoal-950">{user?.username}</h1>
+            <p className="text-xs sm:text-sm text-charcoal-500 mt-0.5">{user?.email}</p>
             {user?.role === "admin" && (
               <span className="inline-block mt-2 bg-indigo-100 text-indigo-800 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded">
                 Admin Panel Access Active
@@ -211,50 +211,50 @@ const Profile = () => {
 
         <Link
           to="/blogs/new"
-          className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-sm hover:shadow"
+          className="flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-3 sm:py-2.5 rounded-lg text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-sm hover:shadow touch-manipulation"
         >
           <FiPlus className="h-4.5 w-4.5" /> Write New Blog
         </Link>
       </div>
 
       {/* Grid: Account Info + My Bookmarks */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
         {/* Account Info */}
-        <div className="md:col-span-2 border border-charcoal-100 rounded-xl bg-white p-6 space-y-6">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-charcoal-500 border-b border-charcoal-55 pb-3">
+        <div className="md:col-span-2 border border-charcoal-100 rounded-xl bg-white p-5 sm:p-6 space-y-6">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-charcoal-500 border-b border-charcoal-100 pb-3">
             Account Details
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             <div className="flex items-center gap-3">
               <FiUser className="h-5 w-5 text-charcoal-400 shrink-0" />
               <div>
-                <p className="text-[11px] uppercase font-bold tracking-wider text-charcoal-400">Username</p>
+                <p className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider text-charcoal-400">Username</p>
                 <p className="text-sm font-semibold text-charcoal-900">{user?.username}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <FiMail className="h-5 w-5 text-charcoal-400 shrink-0" />
-              <div>
-                <p className="text-[11px] uppercase font-bold tracking-wider text-charcoal-400">Email Address</p>
-                <p className="text-sm font-semibold text-charcoal-900">{user?.email}</p>
+              <div className="min-w-0">
+                <p className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider text-charcoal-400">Email Address</p>
+                <p className="text-sm font-semibold text-charcoal-900 truncate">{user?.email}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <FiPhone className="h-5 w-5 text-charcoal-400 shrink-0" />
               <div>
-                <p className="text-[11px] uppercase font-bold tracking-wider text-charcoal-400">Mobile Number</p>
+                <p className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider text-charcoal-400">Mobile Number</p>
                 <p className="text-sm font-semibold text-charcoal-900">{user?.phoneNumber || "—"}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <FiCalendar className="h-5 w-5 text-charcoal-400 shrink-0" />
               <div>
-                <p className="text-[11px] uppercase font-bold tracking-wider text-charcoal-400">Zodiac Sign Preference</p>
+                <p className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider text-charcoal-400">Zodiac Sign Preference</p>
                 <div className="flex gap-2 mt-1">
                   <select
                     value={zodiacSign}
                     onChange={(e) => setZodiacSign(e.target.value)}
-                    className="px-2 py-1 text-xs bg-charcoal-50 border border-charcoal-200 rounded focus:outline-none focus:border-charcoal-800"
+                    className="px-2 py-1.5 text-xs bg-charcoal-50 border border-charcoal-200 rounded focus:outline-none focus:border-charcoal-800 touch-manipulation"
                   >
                     <option value="">Select sign</option>
                     <option value="aries">Aries (♈)</option>
@@ -273,7 +273,7 @@ const Profile = () => {
                   <button
                     onClick={handleSaveZodiac}
                     disabled={savingZodiac || zodiacSign === (user?.zodiacSign || "")}
-                    className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white bg-charcoal-900 hover:bg-charcoal-850 rounded disabled:opacity-50 transition-colors"
+                    className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white bg-charcoal-900 hover:bg-charcoal-850 rounded disabled:opacity-50 transition-colors touch-manipulation"
                   >
                     Save
                   </button>
@@ -284,9 +284,9 @@ const Profile = () => {
         </div>
 
         {/* Bookmarks & Quick stats */}
-        <div className="border border-charcoal-100 rounded-xl bg-white p-6 space-y-6 flex flex-col justify-between">
+        <div className="border border-charcoal-100 rounded-xl bg-white p-5 sm:p-6 space-y-6 flex flex-col justify-between">
           <div className="space-y-4">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-charcoal-500 border-b border-charcoal-55 pb-3">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-charcoal-500 border-b border-charcoal-100 pb-3">
               Favorites
             </h2>
             <div className="flex items-center justify-between p-4 border border-charcoal-100 rounded-lg">
@@ -296,7 +296,7 @@ const Profile = () => {
               </div>
               <Link
                 to="/bookmarks"
-                className="flex items-center justify-center h-10 w-10 rounded-full border border-charcoal-100 hover:bg-charcoal-50 text-charcoal-700 transition-all"
+                className="flex items-center justify-center h-10 w-10 rounded-full border border-charcoal-100 hover:bg-charcoal-50 text-charcoal-700 transition-all touch-manipulation"
               >
                 <FiBookmark className="h-5 w-5" />
               </Link>
@@ -304,7 +304,7 @@ const Profile = () => {
           </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 py-2.5 border border-red-200 text-red-600 rounded-lg text-sm font-bold hover:bg-red-50 transition-colors"
+            className="w-full flex items-center justify-center gap-2 py-3 border border-red-200 text-red-600 rounded-lg text-sm font-bold hover:bg-red-50 transition-colors touch-manipulation"
           >
             <FiLogOut className="h-4.5 w-4.5" /> Sign Out
           </button>
@@ -313,29 +313,29 @@ const Profile = () => {
 
       {/* Admin Dashboard Section */}
       {user?.role === "admin" && (
-        <div className="border border-charcoal-100 rounded-xl bg-white p-6 space-y-6">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-charcoal-500 border-b border-charcoal-55 pb-3 flex items-center gap-2">
+        <div className="border border-charcoal-100 rounded-xl bg-white p-5 sm:p-6 space-y-6">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-charcoal-500 border-b border-charcoal-100 pb-3 flex items-center gap-2">
             <FiBarChart2 className="h-4 w-4" /> Admin Blog Moderation Board
           </h2>
 
           {/* Stats grid */}
           {adminStats && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div className="border border-charcoal-100 rounded-lg p-4 text-center">
-                <span className="font-serif text-2xl font-black text-amber-600">{adminStats.Pending || 0}</span>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-charcoal-400 mt-0.5">Pending Review</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+              <div className="border border-charcoal-100 rounded-lg p-3 sm:p-4 text-center">
+                <span className="font-serif text-xl sm:text-2xl font-black text-amber-600">{adminStats.Pending || 0}</span>
+                <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-charcoal-400 mt-0.5">Pending Review</p>
               </div>
-              <div className="border border-charcoal-100 rounded-lg p-4 text-center">
-                <span className="font-serif text-2xl font-black text-green-600">{adminStats.Approved || 0}</span>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-charcoal-400 mt-0.5">Approved</p>
+              <div className="border border-charcoal-100 rounded-lg p-3 sm:p-4 text-center">
+                <span className="font-serif text-xl sm:text-2xl font-black text-green-600">{adminStats.Approved || 0}</span>
+                <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-charcoal-400 mt-0.5">Approved</p>
               </div>
-              <div className="border border-charcoal-100 rounded-lg p-4 text-center">
-                <span className="font-serif text-2xl font-black text-charcoal-800">{adminStats.totalViews || 0}</span>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-charcoal-400 mt-0.5">Total Views</p>
+              <div className="border border-charcoal-100 rounded-lg p-3 sm:p-4 text-center">
+                <span className="font-serif text-xl sm:text-2xl font-black text-charcoal-800">{adminStats.totalViews || 0}</span>
+                <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-charcoal-400 mt-0.5">Total Views</p>
               </div>
-              <div className="border border-charcoal-100 rounded-lg p-4 text-center">
-                <span className="font-serif text-2xl font-black text-red-600">{adminStats.Rejected || 0}</span>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-charcoal-400 mt-0.5">Rejected</p>
+              <div className="border border-charcoal-100 rounded-lg p-3 sm:p-4 text-center">
+                <span className="font-serif text-xl sm:text-2xl font-black text-red-600">{adminStats.Rejected || 0}</span>
+                <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-charcoal-400 mt-0.5">Rejected</p>
               </div>
             </div>
           )}
@@ -352,36 +352,36 @@ const Profile = () => {
             ) : (
               <div className="divide-y divide-charcoal-100 border border-charcoal-100 rounded-lg overflow-hidden">
                 {adminBlogs.map((blog) => (
-                  <div key={blog._id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 hover:bg-charcoal-50/50 transition-colors">
-                    <div>
-                      <h4 className="font-serif font-bold text-charcoal-900">{blog.title}</h4>
+                  <div key={blog._id} className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 p-4 hover:bg-charcoal-50/50 transition-colors">
+                    <div className="min-w-0">
+                      <h4 className="font-serif font-bold text-sm sm:text-base text-charcoal-900 truncate">{blog.title}</h4>
                       <p className="text-xs text-charcoal-500 mt-1">
                         By <span className="font-semibold">{blog.author?.username}</span> • {blog.category}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
                       <Link
                         to={`/blogs/${blog._id}`}
                         target="_blank"
-                        className="flex-1 sm:flex-none text-center px-3 py-1.5 border border-charcoal-200 rounded text-xs font-semibold text-charcoal-700 hover:bg-white"
+                        className="flex-1 md:flex-none text-center px-3 py-2 border border-charcoal-200 rounded text-xs font-semibold text-charcoal-700 hover:bg-white touch-manipulation"
                       >
                         Preview
                       </Link>
                       <button
                         onClick={() => handleApproveBlog(blog._id)}
-                        className="flex-1 sm:flex-none flex items-center justify-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded text-xs font-semibold hover:bg-green-700 transition-colors"
+                        className="flex-1 md:flex-none flex items-center justify-center gap-1 px-3 py-2 bg-green-600 text-white rounded text-xs font-semibold hover:bg-green-700 transition-colors touch-manipulation"
                       >
                         <FiCheck className="h-3.5 w-3.5" /> Approve
                       </button>
                       <button
                         onClick={() => handleRejectBlog(blog._id)}
-                        className="flex-1 sm:flex-none flex items-center justify-center gap-1 px-3 py-1.5 bg-red-650 text-white rounded text-xs font-semibold hover:bg-red-700 transition-colors"
+                        className="flex-1 md:flex-none flex items-center justify-center gap-1 px-3 py-2 bg-red-650 text-white rounded text-xs font-semibold hover:bg-red-700 transition-colors touch-manipulation"
                       >
                         <FiX className="h-3.5 w-3.5" /> Reject
                       </button>
                       <button
                         onClick={() => handleAdminDeleteBlog(blog._id)}
-                        className="flex-1 sm:flex-none flex items-center justify-center gap-1 px-3 py-1.5 bg-charcoal-900 text-white rounded text-xs font-semibold hover:bg-charcoal-800 transition-colors"
+                        className="flex-1 md:flex-none flex items-center justify-center gap-1 px-3 py-2 bg-charcoal-900 text-white rounded text-xs font-semibold hover:bg-charcoal-800 transition-colors touch-manipulation"
                       >
                         <FiTrash2 className="h-3.5 w-3.5" /> Delete
                       </button>
@@ -395,8 +395,8 @@ const Profile = () => {
       )}
 
       {/* User Dashboard Panel ("My Blogs") */}
-      <div className="border border-charcoal-100 rounded-xl bg-white p-6 space-y-6">
-        <h2 className="text-xs font-bold uppercase tracking-widest text-charcoal-500 border-b border-charcoal-55 pb-3">
+      <div className="border border-charcoal-100 rounded-xl bg-white p-5 sm:p-6 space-y-6">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-charcoal-500 border-b border-charcoal-100 pb-3">
           My Publications & Drafts
         </h2>
 
@@ -407,7 +407,7 @@ const Profile = () => {
             <p className="text-charcoal-500 font-medium text-sm">You haven't written any blogs yet.</p>
             <Link
               to="/blogs/new"
-              className="inline-block text-xs font-bold uppercase tracking-wider text-indigo-600 hover:underline"
+              className="inline-block text-xs font-bold uppercase tracking-wider text-indigo-600 hover:underline touch-manipulation"
             >
               Write your first story →
             </Link>
@@ -417,11 +417,11 @@ const Profile = () => {
             {myBlogs.map((blog) => (
               <div
                 key={blog._id}
-                className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 border border-charcoal-100 rounded-lg hover:shadow-xs transition-shadow gap-4"
+                className="flex flex-col md:flex-row justify-between items-start md:items-center p-4 border border-charcoal-100 rounded-lg hover:shadow-xs transition-shadow gap-4"
               >
-                <div className="space-y-1">
+                <div className="space-y-1.5 min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-serif font-bold text-base text-charcoal-900">{blog.title}</span>
+                    <span className="font-serif font-bold text-sm sm:text-base text-charcoal-900">{blog.title}</span>
                     <span
                       className={`px-2 py-0.5 rounded text-[10px] font-bold border ${getStatusColor(
                         blog.status
@@ -441,11 +441,11 @@ const Profile = () => {
                   )}
                 </div>
 
-                <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+                <div className="flex items-center gap-2 w-full md:w-auto shrink-0">
                   {blog.status === "Approved" && (
                     <Link
                       to={`/blogs/${blog._id}`}
-                      className="flex-1 sm:flex-none text-center px-3 py-1.5 border border-charcoal-200 rounded text-xs font-semibold text-charcoal-700 hover:bg-charcoal-50"
+                      className="flex-1 md:flex-none text-center px-3 py-2 border border-charcoal-200 rounded text-xs font-semibold text-charcoal-700 hover:bg-charcoal-55 touch-manipulation"
                     >
                       View
                     </Link>
@@ -453,7 +453,7 @@ const Profile = () => {
                   {(blog.status === "Draft" || blog.status === "Rejected") && (
                     <Link
                       to={`/blogs/edit/${blog._id}`}
-                      className="flex-1 sm:flex-none flex items-center justify-center gap-1 px-3 py-1.5 border border-charcoal-200 rounded text-xs font-semibold text-charcoal-700 hover:bg-charcoal-50"
+                      className="flex-1 md:flex-none flex items-center justify-center gap-1 px-3 py-2 border border-charcoal-200 rounded text-xs font-semibold text-charcoal-700 hover:bg-charcoal-55 touch-manipulation"
                     >
                       <FiEdit2 className="h-3 w-3" /> Edit
                     </Link>
@@ -461,7 +461,7 @@ const Profile = () => {
                   {blog.status !== "Deleted" && (
                     <button
                       onClick={() => handleDeleteBlog(blog._id)}
-                      className="flex-1 sm:flex-none flex items-center justify-center gap-1 px-3 py-1.5 border border-red-200 rounded text-xs font-semibold text-red-600 hover:bg-red-50"
+                      className="flex-1 md:flex-none flex items-center justify-center gap-1 px-3 py-2 border border-red-200 rounded text-xs font-semibold text-red-600 hover:bg-red-50 touch-manipulation"
                     >
                       <FiTrash2 className="h-3.5 w-3.5" /> Delete
                     </button>

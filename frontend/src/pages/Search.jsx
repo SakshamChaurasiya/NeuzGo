@@ -181,10 +181,10 @@ const Search = () => {
   };
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-8 sm:space-y-12">
       {/* Search Header and Input */}
-      <div className="max-w-2xl mx-auto space-y-6 text-center">
-        <h1 className="font-serif text-4xl font-extrabold text-charcoal-950">
+      <div className="max-w-2xl mx-auto space-y-4 sm:space-y-6 text-center px-4 sm:px-0">
+        <h1 className="font-serif text-3xl sm:text-4xl font-extrabold text-charcoal-950">
           Search the News
         </h1>
 
@@ -199,15 +199,16 @@ const Search = () => {
                 setShowSuggestions(true);
               }}
               onFocus={() => setShowSuggestions(true)}
-              className="w-full px-5 py-3.5 pl-12 pr-12 text-sm bg-white border border-charcoal-200 rounded-lg shadow-sm focus:outline-none focus:border-charcoal-900 transition-all font-medium"
+              className="w-full px-4 py-3.5 pl-11 pr-11 text-sm sm:text-base bg-white border border-charcoal-200 rounded-lg shadow-sm focus:outline-none focus:border-charcoal-900 transition-all font-medium touch-manipulation"
             />
-            <FiSearch className="absolute left-4.5 top-1/2 -translate-y-1/2 h-5 w-5 text-charcoal-400" />
+            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-charcoal-400" />
             
             {searchQuery && (
               <button
                 type="button"
                 onClick={clearSearch}
-                className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-charcoal-100 text-charcoal-500 hover:text-charcoal-800 transition-all"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1.5 rounded-full hover:bg-charcoal-100 text-charcoal-500 hover:text-charcoal-800 transition-all touch-manipulation"
+                aria-label="Clear search"
               >
                 <FiX className="h-4.5 w-4.5" />
               </button>
@@ -250,7 +251,7 @@ const Search = () => {
       {/* Results Section */}
       <div className="space-y-6">
         {queryParam && (
-          <div className="border-b border-charcoal-100 pb-3 flex items-center justify-between text-sm text-charcoal-500">
+          <div className="border-b border-charcoal-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-sm text-charcoal-500">
             <span>
               Showing results for: <span className="font-bold text-charcoal-800">"{queryParam}"</span>
             </span>
@@ -288,11 +289,11 @@ const Search = () => {
 
             {/* Search Pagination */}
             {(totalPages > 1 || hasNext) && results.length > 0 && (
-              <div className="flex items-center justify-center gap-2 pt-10 border-t border-charcoal-100">
+              <div className="flex items-center justify-center gap-4 pt-8 border-t border-charcoal-100">
                 <button
                   disabled={page === 1}
                   onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-                  className="px-4 py-2 text-xs font-bold border border-charcoal-200 rounded hover:bg-charcoal-50 disabled:opacity-50 transition-colors uppercase tracking-wider"
+                  className="px-5 py-3 text-xs font-bold border border-charcoal-200 rounded-lg hover:bg-charcoal-50 disabled:opacity-50 transition-colors uppercase tracking-wider touch-manipulation min-w-[100px]"
                 >
                   Previous
                 </button>
@@ -304,7 +305,7 @@ const Search = () => {
                 <button
                   disabled={!hasNext}
                   onClick={() => setPage((prev) => prev + 1)}
-                  className="px-4 py-2 text-xs font-bold border border-charcoal-200 rounded hover:bg-charcoal-50 disabled:opacity-50 transition-colors uppercase tracking-wider"
+                  className="px-5 py-3 text-xs font-bold border border-charcoal-200 rounded-lg hover:bg-charcoal-50 disabled:opacity-50 transition-colors uppercase tracking-wider touch-manipulation min-w-[100px]"
                 >
                   Next
                 </button>

@@ -228,12 +228,12 @@ const BlogEditor = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4 space-y-6">
+    <div className="max-w-4xl mx-auto py-6 sm:py-8 px-4 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-charcoal-100 pb-4 sm:pb-0 sm:border-b-0">
         <button
           onClick={() => navigate("/profile")}
-          className="flex items-center gap-2 text-sm font-semibold text-charcoal-600 hover:text-charcoal-900 transition-colors"
+          className="flex items-center gap-2 text-sm font-semibold text-charcoal-600 hover:text-charcoal-900 transition-colors py-2 touch-manipulation"
         >
           <FiArrowLeft className="h-4 w-4" /> Back to Profile
         </button>
@@ -241,16 +241,16 @@ const BlogEditor = () => {
           <button
             onClick={() => handleSave(false)}
             disabled={loading}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 border border-charcoal-200 rounded-lg text-sm font-semibold text-charcoal-700 bg-white hover:bg-charcoal-50 transition-all disabled:opacity-50"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-3 sm:py-2 border border-charcoal-200 rounded-lg text-xs sm:text-sm font-semibold text-charcoal-700 bg-white hover:bg-charcoal-50 transition-all disabled:opacity-50 touch-manipulation"
           >
             <FiSave className="h-4 w-4" /> Save Draft
           </button>
           <button
             onClick={() => handleSave(true)}
             disabled={loading}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-sm hover:shadow disabled:opacity-50"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-3 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-sm hover:shadow disabled:opacity-50 touch-manipulation"
           >
-            <FiSend className="h-4 w-4" /> Submit for Review
+            <FiSend className="h-4 w-4" /> Submit
           </button>
         </div>
       </div>
@@ -258,10 +258,10 @@ const BlogEditor = () => {
       {/* Editor Body */}
       <div className="bg-white border border-charcoal-100 rounded-xl shadow-sm overflow-hidden">
         {/* Tab Headers */}
-        <div className="flex border-b border-charcoal-100 bg-charcoal-50/50 px-4">
+        <div className="flex border-b border-charcoal-100 bg-charcoal-50/50 px-2 sm:px-4">
           <button
             onClick={() => setActiveTab("edit")}
-            className={`flex items-center gap-2 px-4 py-3 text-sm font-bold border-b-2 transition-all ${
+            className={`flex items-center gap-2 px-3 sm:px-4 py-3.5 text-xs sm:text-sm font-bold border-b-2 transition-all touch-manipulation ${
               activeTab === "edit"
                 ? "border-charcoal-900 text-charcoal-900"
                 : "border-transparent text-charcoal-500 hover:text-charcoal-800"
@@ -271,7 +271,7 @@ const BlogEditor = () => {
           </button>
           <button
             onClick={() => setActiveTab("preview")}
-            className={`flex items-center gap-2 px-4 py-3 text-sm font-bold border-b-2 transition-all ${
+            className={`flex items-center gap-2 px-3 sm:px-4 py-3.5 text-xs sm:text-sm font-bold border-b-2 transition-all touch-manipulation ${
               activeTab === "preview"
                 ? "border-charcoal-900 text-charcoal-900"
                 : "border-transparent text-charcoal-500 hover:text-charcoal-800"
@@ -282,7 +282,7 @@ const BlogEditor = () => {
         </div>
 
         {activeTab === "edit" ? (
-          <div className="p-6 space-y-6">
+          <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
             {/* Title */}
             <div className="space-y-1.5">
               <label className="text-xs font-bold uppercase tracking-wider text-charcoal-500">Title</label>
@@ -291,12 +291,12 @@ const BlogEditor = () => {
                 placeholder="Enter a compelling title..."
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-4 py-3 border border-charcoal-200 rounded-lg text-lg font-bold text-charcoal-900 focus:outline-none focus:border-charcoal-900 transition-colors"
+                className="w-full px-4 py-3 border border-charcoal-200 rounded-lg text-base sm:text-lg font-bold text-charcoal-900 focus:outline-none focus:border-charcoal-900 transition-colors touch-manipulation"
               />
             </div>
 
             {/* Grid for Cover Image, Category, Tags */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
               <div className="space-y-1.5">
                 <label className="text-xs font-bold uppercase tracking-wider text-charcoal-500 flex items-center justify-between">
                   <span className="flex items-center gap-1.5"><FiImage className="h-3.5 w-3.5" /> Cover Image</span>
@@ -304,7 +304,7 @@ const BlogEditor = () => {
                     <button
                       type="button"
                       onClick={() => setImageSource("url")}
-                      className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all ${
+                      className={`px-2 py-1 rounded text-[10px] font-bold transition-all touch-manipulation ${
                         imageSource === "url"
                           ? "bg-charcoal-900 text-white"
                           : "bg-charcoal-100 text-charcoal-600 hover:bg-charcoal-200"
@@ -315,7 +315,7 @@ const BlogEditor = () => {
                     <button
                       type="button"
                       onClick={() => setImageSource("upload")}
-                      className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all ${
+                      className={`px-2 py-1 rounded text-[10px] font-bold transition-all touch-manipulation ${
                         imageSource === "upload"
                           ? "bg-charcoal-900 text-white"
                           : "bg-charcoal-100 text-charcoal-600 hover:bg-charcoal-200"
@@ -333,16 +333,16 @@ const BlogEditor = () => {
                       placeholder="https://example.com/image.jpg"
                       value={imageUrl}
                       onChange={(e) => setImageUrl(e.target.value)}
-                      className="w-full px-4 py-2 text-sm border border-charcoal-200 rounded-lg focus:outline-none focus:border-charcoal-900 transition-colors"
+                      className="w-full px-4 py-2.5 text-sm border border-charcoal-200 rounded-lg focus:outline-none focus:border-charcoal-900 transition-colors touch-manipulation"
                     />
-                    <div className="flex gap-2 mt-1">
+                    <div className="flex flex-wrap gap-x-2 gap-y-1 mt-1">
                       <span className="text-[10px] text-charcoal-400 font-bold self-center">Presets:</span>
                       {PRESETS.map((p, idx) => (
                         <button
                           key={idx}
                           type="button"
                           onClick={() => setImageUrl(p)}
-                          className="text-[10px] font-semibold text-indigo-600 hover:underline"
+                          className="text-[10px] font-semibold text-indigo-600 hover:underline py-1 touch-manipulation"
                         >
                           Image {idx + 1}
                         </button>
@@ -350,7 +350,7 @@ const BlogEditor = () => {
                     </div>
                   </>
                 ) : (
-                  <div className="relative border border-dashed border-charcoal-200 rounded-lg p-4 flex flex-col items-center justify-center bg-charcoal-50/50 hover:bg-charcoal-50 transition-colors h-[72px]">
+                  <div className="relative border border-dashed border-charcoal-200 rounded-lg p-4 flex flex-col items-center justify-center bg-charcoal-50/50 hover:bg-charcoal-50 transition-colors h-[80px]">
                     {uploading ? (
                       <div className="flex flex-col items-center gap-1.5">
                         <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
@@ -386,7 +386,7 @@ const BlogEditor = () => {
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-charcoal-200 rounded-lg focus:outline-none focus:border-charcoal-900 transition-colors bg-white font-semibold text-charcoal-800"
+                    className="w-full px-3 py-2.5 text-sm border border-charcoal-200 rounded-lg focus:outline-none focus:border-charcoal-900 transition-colors bg-white font-semibold text-charcoal-800 touch-manipulation"
                   >
                     {CATEGORIES.map((cat) => (
                       <option key={cat} value={cat}>
@@ -403,7 +403,7 @@ const BlogEditor = () => {
                     placeholder="tech, news, space"
                     value={tagsInput}
                     onChange={(e) => setTagsInput(e.target.value)}
-                    className="w-full px-4 py-2 text-sm border border-charcoal-200 rounded-lg focus:outline-none focus:border-charcoal-900 transition-colors"
+                    className="w-full px-4 py-2.5 text-sm border border-charcoal-200 rounded-lg focus:outline-none focus:border-charcoal-900 transition-colors touch-manipulation"
                   />
                 </div>
               </div>
@@ -417,7 +417,7 @@ const BlogEditor = () => {
                 placeholder="Write a brief, catchy summary of the blog post..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full px-4 py-2 border border-charcoal-200 rounded-lg text-sm text-charcoal-700 focus:outline-none focus:border-charcoal-900 transition-colors resize-none"
+                className="w-full px-4 py-2.5 border border-charcoal-200 rounded-lg text-sm text-charcoal-700 focus:outline-none focus:border-charcoal-900 transition-colors resize-none touch-manipulation"
               />
             </div>
 
@@ -429,12 +429,12 @@ const BlogEditor = () => {
                 placeholder="Write your story here... Feel free to use Markdown formatting."
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                className="w-full px-4 py-3 border border-charcoal-200 rounded-lg text-sm text-charcoal-800 font-mono focus:outline-none focus:border-charcoal-900 transition-colors"
+                className="w-full px-4 py-3 border border-charcoal-200 rounded-lg text-sm text-charcoal-800 font-mono focus:outline-none focus:border-charcoal-900 transition-colors touch-manipulation"
               />
             </div>
           </div>
         ) : (
-          <div className="p-6 space-y-6">
+          <div className="p-4 sm:p-6 space-y-6">
             {/* Preview Cover Image */}
             {imageUrl && (
               <div className="relative aspect-[21/9] rounded-lg overflow-hidden border border-charcoal-100 bg-charcoal-50">
@@ -452,18 +452,13 @@ const BlogEditor = () => {
                   {Math.max(1, Math.ceil((content ? content.split(/\s+/).length : 0) / 200))} MIN READ
                 </span>
               </div>
-              <h1 className="font-serif text-3xl font-extrabold text-charcoal-950 leading-tight">
+              <h1 className="font-serif text-2xl sm:text-3xl font-extrabold text-charcoal-950 leading-tight">
                 {title || "Untitled Blog Post"}
               </h1>
               <p className="text-charcoal-500 font-semibold text-sm italic">{description || "No description provided."}</p>
             </div>
 
             <hr className="border-charcoal-100" />
-
-            {/* Preview Content Body */}
-            <div className="prose prose-charcoal max-w-none text-charcoal-800 whitespace-pre-wrap leading-relaxed">
-              {content || "Start typing in the 'Write' tab to see content here."}
-            </div>
 
             {/* Preview Tags */}
             {tagsInput && (
@@ -479,6 +474,11 @@ const BlogEditor = () => {
                   ))}
               </div>
             )}
+
+            {/* Preview Content Body */}
+            <div className="prose prose-charcoal max-w-none text-charcoal-800 whitespace-pre-wrap leading-relaxed text-sm sm:text-base">
+              {content || "Start typing in the 'Write' tab to see content here."}
+            </div>
           </div>
         )}
       </div>

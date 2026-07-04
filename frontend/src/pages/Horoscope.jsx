@@ -136,7 +136,7 @@ const Horoscope = () => {
   }, []);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-16 text-charcoal-900">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-10 sm:space-y-16 text-charcoal-900">
       {/* Inject custom CSS keyframe animations dynamically to prevent external style dependencies */}
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes celestialRotate {
@@ -186,7 +186,7 @@ const Horoscope = () => {
       `}} />
 
       {/* Hero Section */}
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-charcoal-950 via-indigo-950 to-charcoal-950 text-white p-8 md:p-14 shadow-2xl border border-indigo-900/30">
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-charcoal-950 via-indigo-950 to-charcoal-950 text-white p-6 sm:p-8 md:p-14 shadow-2xl border border-indigo-900/30">
         {/* Soft background glows and orbit details */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-800/10 via-transparent to-transparent"></div>
         <div className="absolute top-1/2 right-12 md:right-24 -translate-y-1/2 w-80 h-80 rounded-full border border-indigo-500/10 animate-pulse-glow pointer-events-none"></div>
@@ -201,8 +201,8 @@ const Horoscope = () => {
         <div className="absolute bottom-20 right-16 w-2 h-2 bg-accent-amber/20 rounded-full animate-twinkle-slow"></div>
 
         {/* Background Zodiac Ring Icon Container */}
-        <div className="absolute right-[-40px] md:right-10 top-1/2 -translate-y-1/2 opacity-10 md:opacity-20 pointer-events-none animate-celestial-rotate">
-          <svg className="w-80 h-80 md:w-96 md:h-96 text-accent-amber" fill="none" viewBox="0 0 100 100" stroke="currentColor" strokeWidth="0.5">
+        <div className="absolute right-[-60px] sm:right-[-40px] md:right-10 top-1/2 -translate-y-1/2 opacity-10 md:opacity-20 pointer-events-none animate-celestial-rotate">
+          <svg className="w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 text-accent-amber" fill="none" viewBox="0 0 100 100" stroke="currentColor" strokeWidth="0.5">
             <circle cx="50" cy="50" r="45" strokeDasharray="2,2" />
             <circle cx="50" cy="50" r="38" />
             <circle cx="50" cy="50" r="30" strokeDasharray="4,4" />
@@ -213,38 +213,38 @@ const Horoscope = () => {
           </svg>
         </div>
 
-        <div className="relative z-10 max-w-2xl space-y-6">
+        <div className="relative z-10 max-w-2xl space-y-4 sm:space-y-6">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-accent-amber/10 to-indigo-500/20 backdrop-blur-md rounded-full text-xs font-bold uppercase tracking-widest text-accent-amber border border-accent-amber/20">
             <span className="w-1.5 h-1.5 rounded-full bg-accent-amber animate-ping"></span>
             Cosmic Guidance
           </span>
-          <h1 className="font-serif text-4xl md:text-6xl font-black leading-tight tracking-tight">
+          <h1 className="font-serif text-3xl sm:text-4xl md:text-6xl font-black leading-tight tracking-tight">
             Daily Horoscope <br />
             <span className="bg-gradient-to-r from-accent-amber via-amber-200 to-indigo-300 bg-clip-text text-transparent">
               & Celestial Insights
             </span>
           </h1>
-          <p className="text-charcoal-300 text-base md:text-lg font-light leading-relaxed max-w-xl">
+          <p className="text-charcoal-300 text-sm sm:text-base md:text-lg font-light leading-relaxed max-w-xl">
             Understand your path, discover compatibility, and unlock daily predictions tailored to your zodiac sign's unique energetic signature.
           </p>
         </div>
       </div>
 
       {/* Zodiac Selector Grid */}
-      <div className="space-y-8">
-        <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 border-b border-charcoal-100 pb-5">
+      <div className="space-y-6 sm:space-y-8">
+        <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-3 border-b border-charcoal-100 pb-5">
           <div>
-            <h2 className="font-serif text-3xl font-extrabold text-charcoal-950 tracking-tight">Select Your Zodiac Sign</h2>
+            <h2 className="font-serif text-2xl sm:text-3xl font-extrabold text-charcoal-950 tracking-tight">Select Your Zodiac Sign</h2>
             <p className="text-sm text-charcoal-500 mt-1">Choose a sign to sync with today's cosmic reading</p>
           </div>
           {user?.zodiacSign && (
-            <span className="text-xs font-semibold px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full border border-indigo-100 w-max">
+            <span className="text-xs font-semibold px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full border border-indigo-100 w-max self-start sm:self-auto">
               Linked: {user.zodiacSign.toUpperCase()}
             </span>
           )}
         </div>
         
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3 sm:gap-4">
           {ZODIAC_SIGNS.map((sign) => {
             const isSelected = sign.id === selectedSign;
             const SignIcon = sign.icon;
@@ -252,7 +252,7 @@ const Horoscope = () => {
               <button
                 key={sign.id}
                 onClick={() => handleSignSelect(sign.id)}
-                className={`group relative flex flex-col items-center justify-center p-5 rounded-2xl border text-center transition-all duration-300 cursor-pointer overflow-hidden ${
+                className={`group relative flex flex-col items-center justify-center p-3 sm:p-5 rounded-2xl border text-center transition-all duration-300 cursor-pointer overflow-hidden touch-manipulation ${
                   isSelected
                     ? "bg-gradient-to-b from-indigo-950 to-charcoal-950 border-indigo-900 text-white shadow-xl shadow-indigo-950/20 scale-102"
                     : "bg-white border-charcoal-100 hover:border-indigo-200 hover:bg-gradient-to-b hover:from-white hover:to-indigo-50/20 hover:shadow-md text-charcoal-800"
@@ -265,17 +265,17 @@ const Horoscope = () => {
                 
                 <span className={`transition-transform duration-500 block ${
                   isSelected 
-                    ? "scale-115 rotate-6 text-accent-amber" 
+                    ? "scale-110 sm:scale-115 rotate-6 text-accent-amber" 
                     : "group-hover:scale-115 group-hover:rotate-6 text-indigo-950/80 group-hover:text-indigo-600"
                 }`}>
-                  <SignIcon className="w-10 h-10 md:w-11 md:h-11 stroke-[1.25]" />
+                  <SignIcon className="w-8 h-8 sm:w-10 sm:h-10 md:w-11 md:h-11 stroke-[1.25]" />
                 </span>
                 
-                <span className={`font-extrabold text-sm tracking-wide mt-3 ${isSelected ? "text-white" : "text-charcoal-900"}`}>
+                <span className={`font-extrabold text-xs sm:text-sm tracking-wide mt-2 sm:mt-3 ${isSelected ? "text-white" : "text-charcoal-900"}`}>
                   {sign.name}
                 </span>
                 
-                <span className={`text-[10px] mt-1 font-medium transition-colors ${
+                <span className={`text-[9px] sm:text-[10px] mt-1 font-medium transition-colors ${
                   isSelected ? "text-indigo-200" : "text-charcoal-400 group-hover:text-indigo-500/70"
                 }`}>
                   {sign.dateRange}
@@ -287,19 +287,19 @@ const Horoscope = () => {
       </div>
 
       {/* Horoscope Reading Card / History View */}
-      <div className="space-y-8">
-        <div className="border-b border-charcoal-100 pb-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="space-y-6 sm:space-y-8">
+        <div className="border-b border-charcoal-100 pb-5 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div>
-            <h2 className="font-serif text-3xl font-extrabold text-charcoal-950 tracking-tight">
+            <h2 className="font-serif text-2xl sm:text-3xl font-extrabold text-charcoal-950 tracking-tight">
               {viewMode === "today" ? "Today's Reading" : viewMode === "week" ? "Weekly Summary" : "Monthly Summary"}
             </h2>
             <p className="text-sm text-charcoal-500 mt-1">
               Personalized guidance for {selectedSign.charAt(0).toUpperCase() + selectedSign.slice(1)}
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-4 w-full md:w-auto justify-between md:justify-end">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full lg:w-auto justify-between lg:justify-end">
             {/* Toggle Segmented Control */}
-            <div className="flex items-center bg-charcoal-50 p-1.5 rounded-2xl border border-charcoal-200/60 shadow-sm">
+            <div className="flex items-center bg-charcoal-50 p-1.5 rounded-2xl border border-charcoal-200/60 shadow-sm w-full sm:w-auto overflow-x-auto justify-around sm:justify-start">
               {[
                 { id: "today", label: "Today" },
                 { id: "week", label: "This Week" },
@@ -308,7 +308,7 @@ const Horoscope = () => {
                 <button
                   key={tab.id}
                   onClick={() => setViewMode(tab.id)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer ${
+                  className={`flex-1 sm:flex-none text-center px-4 py-2.5 sm:py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer touch-manipulation whitespace-nowrap ${
                     viewMode === tab.id
                       ? "bg-gradient-to-r from-indigo-950 to-charcoal-950 text-white shadow-md"
                       : "text-charcoal-500 hover:text-charcoal-800"
@@ -320,7 +320,7 @@ const Horoscope = () => {
             </div>
 
             {viewMode === "today" && (
-              <div className="flex items-center gap-2 text-xs font-bold text-charcoal-700 uppercase tracking-widest bg-charcoal-50 px-4 py-2.5 rounded-xl border border-charcoal-200 shadow-sm">
+              <div className="flex items-center justify-center gap-2 text-xs font-bold text-charcoal-700 uppercase tracking-widest bg-charcoal-50 px-4 py-2.5 rounded-xl border border-charcoal-200 shadow-sm w-full sm:w-auto self-stretch">
                 <FiCalendar className="h-4 w-4 text-accent-amber" />
                 {horoscope?.date || new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
               </div>
@@ -352,34 +352,34 @@ const Horoscope = () => {
               <span className="text-2xl mr-2">⚠️</span> {errorHistory}
             </div>
           ) : historyData.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-charcoal-200 rounded-3xl text-center px-6 gap-5 bg-charcoal-50/30">
+            <div className="flex flex-col items-center justify-center py-16 sm:py-20 border-2 border-dashed border-charcoal-200 rounded-3xl text-center px-6 gap-5 bg-charcoal-50/30">
               <div className="h-16 w-16 rounded-2xl bg-indigo-50 flex items-center justify-center text-3xl text-indigo-600 shadow-inner">
                 ✨
               </div>
               <div className="space-y-2">
-                <h3 className="font-serif text-xl font-extrabold text-charcoal-900">No history available yet</h3>
+                <h3 className="font-serif text-lg sm:text-xl font-extrabold text-charcoal-900">No history available yet</h3>
                 <p className="text-sm text-charcoal-500 max-w-md mx-auto leading-relaxed">
                   Check back after a few days to view your accumulated historical insights.
                 </p>
               </div>
             </div>
           ) : (
-            <div className="relative border-l-2 border-indigo-100/60 pl-6 ml-4 space-y-8 animate-fade-in-up">
+            <div className="relative border-l-2 border-indigo-100/60 pl-5 sm:pl-6 ml-2 sm:ml-4 space-y-6 sm:space-y-8 animate-fade-in-up">
               {historyData.map((item, idx) => (
                 <div key={item.dateStr || idx} className="relative group">
                   {/* Timeline dot */}
-                  <div className="absolute -left-[33px] top-1.5 w-4.5 h-4.5 rounded-full border-2 border-indigo-950 bg-white flex items-center justify-center transition-transform duration-300 group-hover:scale-120 group-hover:bg-indigo-950">
+                  <div className="absolute -left-[30px] sm:-left-[33px] top-1.5 w-4 h-4 sm:w-4.5 sm:h-4.5 rounded-full border-2 border-indigo-950 bg-white flex items-center justify-center transition-transform duration-300 group-hover:scale-120 group-hover:bg-indigo-950">
                     <div className="w-1.5 h-1.5 bg-accent-amber rounded-full"></div>
                   </div>
                   
                   {/* History item card */}
-                  <div className="bg-white border border-charcoal-150 hover:border-indigo-150 rounded-2xl p-5 md:p-6 transition-all duration-300 hover:shadow-lg hover:shadow-indigo-950/5">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-charcoal-50 pb-4 mb-4">
+                  <div className="bg-white border border-charcoal-150 hover:border-indigo-150 rounded-2xl p-4 sm:p-5 md:p-6 transition-all duration-300 hover:shadow-lg hover:shadow-indigo-950/5">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 border-b border-charcoal-50 pb-4 mb-4">
                       <div>
                         <span className="text-xs font-bold text-indigo-600 uppercase tracking-wider">
                           {item.date}
                         </span>
-                        <div className="flex flex-wrap items-center gap-2 mt-1">
+                        <div className="flex flex-wrap items-center gap-2 mt-1.5 sm:mt-1">
                           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-green-50 text-green-700 text-[10px] font-bold uppercase tracking-wider rounded-md border border-green-100">
                             Mood: {item.mood}
                           </span>
@@ -388,7 +388,7 @@ const Horoscope = () => {
                           </span>
                         </div>
                       </div>
-                      <div className="flex gap-4.5 text-[11px] font-semibold text-charcoal-500">
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] font-semibold text-charcoal-500">
                         <div>
                           Lucky Number: <span className="font-bold text-charcoal-900 font-serif">{item.lucky_number}</span>
                         </div>
@@ -406,7 +406,7 @@ const Horoscope = () => {
             </div>
           )
         ) : loadingHoroscope ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
             <div className="md:col-span-2 h-72 bg-gradient-to-r from-charcoal-50 via-charcoal-100 to-charcoal-50 border border-charcoal-100 rounded-2xl relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/45 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" style={{
                 backgroundImage: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4) 50%, transparent)',
@@ -436,31 +436,33 @@ const Horoscope = () => {
           </div>
         ) : (
           /* Animate container mounting whenever sign changes using key */
-          <div key={selectedSign} className="grid grid-cols-1 md:grid-cols-3 gap-8 animate-fade-in-up">
+          <div key={selectedSign} className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 animate-fade-in-up">
             
             {/* Reading Content */}
-            <div className="md:col-span-2 bg-gradient-to-b from-white to-indigo-50/10 border border-charcoal-150 rounded-3xl p-6 md:p-10 flex flex-col justify-between hover:shadow-xl hover:shadow-indigo-950/5 transition-all duration-300 relative overflow-hidden">
+            <div className="md:col-span-2 bg-gradient-to-b from-white to-indigo-50/10 border border-charcoal-150 rounded-3xl p-5 sm:p-6 md:p-10 flex flex-col justify-between hover:shadow-xl hover:shadow-indigo-950/5 transition-all duration-300 relative overflow-hidden">
               <div className="absolute -top-10 -right-10 w-40 h-40 bg-indigo-50/50 rounded-full blur-3xl pointer-events-none"></div>
               
               <div className="space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-2xl bg-indigo-950 text-accent-amber flex items-center justify-center text-4xl shadow-md border border-indigo-900/35">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-indigo-950 text-accent-amber flex items-center justify-center text-3xl sm:text-4xl shadow-md border border-indigo-900/35 shrink-0">
                       {React.createElement(ZODIAC_SIGNS.find((z) => z.id === selectedSign)?.icon || TbZodiacAries, {
-                        className: "w-10 h-10 stroke-[1.25]"
+                        className: "w-8 h-8 sm:w-10 sm:h-10 stroke-[1.25]"
                       })}
                     </div>
                     <div>
-                      <h3 className="font-serif text-2xl font-black text-charcoal-950 uppercase tracking-wide">
+                      <h3 className="font-serif text-xl sm:text-2xl font-black text-charcoal-950 uppercase tracking-wide">
                         {selectedSign} Guidance
                       </h3>
-                      <p className="text-xs font-semibold text-indigo-600/80 uppercase tracking-wider">Daily Transit Outlook</p>
+                      <p className="text-[10px] sm:text-xs font-semibold text-indigo-600/80 uppercase tracking-wider">Daily Transit Outlook</p>
                     </div>
                   </div>
-                  <ShareHoroscopeCard selectedSign={selectedSign} horoscope={horoscope} />
+                  <div className="self-start sm:self-auto shrink-0">
+                    <ShareHoroscopeCard selectedSign={selectedSign} horoscope={horoscope} />
+                  </div>
                 </div>
                 
-                <p className="text-charcoal-800 text-lg md:text-xl leading-relaxed pt-2 font-serif font-light italic">
+                <p className="text-charcoal-800 text-base sm:text-lg md:text-xl leading-relaxed pt-2 font-serif font-light italic">
                   "{horoscope.horoscope_data}"
                 </p>
               </div>
@@ -473,49 +475,49 @@ const Horoscope = () => {
             </div>
 
             {/* Reading Attributes Sidebar */}
-            <div className="grid grid-cols-2 md:grid-cols-1 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-1 gap-3 sm:gap-4">
               
               {/* Lucky Number */}
-              <div className="bg-white border border-charcoal-150 hover:border-indigo-150 rounded-2xl p-6 flex items-center gap-4 hover:shadow-lg hover:shadow-indigo-950/5 transition-all duration-300 group">
-                <div className="h-12 w-12 rounded-xl bg-accent-amber/10 flex items-center justify-center text-accent-amber transition-transform duration-300 group-hover:scale-110">
-                  <FiCompass className="h-6 w-6" />
+              <div className="bg-white border border-charcoal-150 hover:border-indigo-150 rounded-2xl p-4 sm:p-6 flex items-center gap-3 sm:gap-4 hover:shadow-lg hover:shadow-indigo-950/5 transition-all duration-300 group">
+                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-accent-amber/10 flex items-center justify-center text-accent-amber transition-transform duration-300 group-hover:scale-110 shrink-0">
+                  <FiCompass className="h-5 w-5 sm:h-6 sm:w-6" />
                 </div>
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-charcoal-400">Lucky Number</p>
-                  <p className="font-serif font-black text-2xl text-charcoal-950 mt-0.5">{horoscope.lucky_number}</p>
+                <div className="min-w-0">
+                  <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-charcoal-400">Lucky Number</p>
+                  <p className="font-serif font-black text-xl sm:text-2xl text-charcoal-950 mt-0.5 truncate">{horoscope.lucky_number}</p>
                 </div>
               </div>
 
               {/* Lucky Color */}
-              <div className="bg-white border border-charcoal-150 hover:border-indigo-150 rounded-2xl p-6 flex items-center gap-4 hover:shadow-lg hover:shadow-indigo-950/5 transition-all duration-300 group">
-                <div className="h-12 w-12 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 transition-transform duration-300 group-hover:scale-110">
-                  <FiActivity className="h-6 w-6" />
+              <div className="bg-white border border-charcoal-150 hover:border-indigo-150 rounded-2xl p-4 sm:p-6 flex items-center gap-3 sm:gap-4 hover:shadow-lg hover:shadow-indigo-950/5 transition-all duration-300 group">
+                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 transition-transform duration-300 group-hover:scale-110 shrink-0">
+                  <FiActivity className="h-5 w-5 sm:h-6 sm:w-6" />
                 </div>
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-charcoal-400">Lucky Color</p>
-                  <p className="font-serif font-black text-xl text-charcoal-950 mt-0.5">{horoscope.lucky_color}</p>
+                <div className="min-w-0">
+                  <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-charcoal-400">Lucky Color</p>
+                  <p className="font-serif font-black text-lg sm:text-xl text-charcoal-950 mt-0.5 truncate">{horoscope.lucky_color}</p>
                 </div>
               </div>
 
               {/* Compatibility */}
-              <div className="bg-white border border-charcoal-150 hover:border-indigo-150 rounded-2xl p-6 flex items-center gap-4 hover:shadow-lg hover:shadow-indigo-950/5 transition-all duration-300 group">
-                <div className="h-12 w-12 rounded-xl bg-red-50 flex items-center justify-center text-red-500 transition-transform duration-300 group-hover:scale-110">
-                  <FiHeart className="h-6 w-6" />
+              <div className="bg-white border border-charcoal-150 hover:border-indigo-150 rounded-2xl p-4 sm:p-6 flex items-center gap-3 sm:gap-4 hover:shadow-lg hover:shadow-indigo-950/5 transition-all duration-300 group">
+                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-red-50 flex items-center justify-center text-red-500 transition-transform duration-300 group-hover:scale-110 shrink-0">
+                  <FiHeart className="h-5 w-5 sm:h-6 sm:w-6" />
                 </div>
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-charcoal-400">Compatibility</p>
-                  <p className="font-serif font-black text-xl text-charcoal-950 mt-0.5">{horoscope.compatibility}</p>
+                <div className="min-w-0">
+                  <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-charcoal-400">Compatibility</p>
+                  <p className="font-serif font-black text-lg sm:text-xl text-charcoal-950 mt-0.5 truncate">{horoscope.compatibility}</p>
                 </div>
               </div>
 
               {/* Mood */}
-              <div className="bg-white border border-charcoal-150 hover:border-indigo-150 rounded-2xl p-6 flex items-center gap-4 hover:shadow-lg hover:shadow-indigo-950/5 transition-all duration-300 group">
-                <div className="h-12 w-12 rounded-xl bg-green-50 flex items-center justify-center text-green-600 transition-transform duration-300 group-hover:scale-110">
-                  <FiSmile className="h-6 w-6" />
+              <div className="bg-white border border-charcoal-150 hover:border-indigo-150 rounded-2xl p-4 sm:p-6 flex items-center gap-3 sm:gap-4 hover:shadow-lg hover:shadow-indigo-950/5 transition-all duration-300 group">
+                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-green-50 flex items-center justify-center text-green-600 transition-transform duration-300 group-hover:scale-110 shrink-0">
+                  <FiSmile className="h-5 w-5 sm:h-6 sm:w-6" />
                 </div>
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-charcoal-400">Mood</p>
-                  <p className="font-serif font-black text-xl text-charcoal-950 mt-0.5">{horoscope.mood}</p>
+                <div className="min-w-0">
+                  <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-charcoal-400">Mood</p>
+                  <p className="font-serif font-black text-lg sm:text-xl text-charcoal-950 mt-0.5 truncate">{horoscope.mood}</p>
                 </div>
               </div>
 
@@ -525,9 +527,9 @@ const Horoscope = () => {
       </div>
 
       {/* Related Articles Section */}
-      <div className="space-y-8">
+      <div className="space-y-6 sm:space-y-8">
         <div className="border-b border-charcoal-100 pb-5">
-          <h2 className="font-serif text-3xl font-extrabold text-charcoal-950 tracking-tight">
+          <h2 className="font-serif text-2xl sm:text-3xl font-extrabold text-charcoal-950 tracking-tight">
             Celestial & Wellness Insights
           </h2>
           <p className="text-sm text-charcoal-500 mt-1">
@@ -536,7 +538,7 @@ const Horoscope = () => {
         </div>
 
         {loadingArticles ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {[1, 2, 3].map((n) => (
               <div key={n} className="h-96 bg-gradient-to-r from-charcoal-50 via-charcoal-100 to-charcoal-50 border border-charcoal-100 rounded-2xl relative overflow-hidden">
                 <div className="absolute inset-0" style={{
@@ -548,19 +550,19 @@ const Horoscope = () => {
           </div>
         ) : articles.length === 0 ? (
           /* Empty State */
-          <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-charcoal-200 rounded-3xl text-center px-6 gap-5 bg-charcoal-50/30">
+          <div className="flex flex-col items-center justify-center py-16 sm:py-20 border-2 border-dashed border-charcoal-200 rounded-3xl text-center px-6 gap-5 bg-charcoal-50/30">
             <div className="h-16 w-16 rounded-2xl bg-indigo-50 flex items-center justify-center text-3xl text-indigo-600 shadow-inner">
               ✨
             </div>
             <div className="space-y-2">
-              <h3 className="font-serif text-xl font-extrabold text-charcoal-900">No cosmic articles found</h3>
+              <h3 className="font-serif text-lg sm:text-xl font-extrabold text-charcoal-900">No cosmic articles found</h3>
               <p className="text-sm text-charcoal-500 max-w-md mx-auto leading-relaxed">
                 Check back later as our synchronization system categorizes new spiritual and astrological news stories.
               </p>
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {articles.map((art) => (
               <div key={art._id} className="transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-indigo-950/5">
                 <ArticleCard article={art} />

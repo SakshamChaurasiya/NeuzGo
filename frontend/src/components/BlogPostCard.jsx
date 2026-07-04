@@ -88,16 +88,16 @@ const BlogPostCard = ({ blog }) => {
                 navigator.clipboard.writeText(blogUrl);
                 toast.success("Blog link copied!");
               }}
-              className="p-1 hover:bg-charcoal-50 text-charcoal-400 hover:text-indigo-650 transition-colors rounded-full"
+              className="p-2 sm:p-1 hover:bg-charcoal-50 text-charcoal-400 hover:text-indigo-650 transition-colors rounded-full touch-manipulation"
               aria-label="Share blog link"
               title="Share blog link"
             >
-              <FiShare2 className="h-4 w-4" />
+              <FiShare2 className="h-4.5 w-4.5" />
             </button>
           </div>
           <Link
             to={`/blogs/${blog._id}`}
-            className="relative inline-flex flex-col text-xs font-bold uppercase tracking-wider text-indigo-600 hover:text-indigo-800 transition-colors py-1"
+            className="relative inline-flex flex-col text-xs font-bold uppercase tracking-wider text-indigo-600 hover:text-indigo-800 transition-colors py-2 px-1 touch-manipulation"
           >
             <span className="flex items-center gap-1">
               Read More <span className="transform group-hover:translate-x-1 transition-transform duration-200">→</span>

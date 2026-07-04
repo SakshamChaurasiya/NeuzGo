@@ -40,11 +40,11 @@ const Bookmarks = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-12 px-4 space-y-10">
+    <div className="max-w-4xl mx-auto py-8 sm:py-12 px-4 space-y-8 sm:space-y-10">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-charcoal-200 pb-6">
+      <div className="flex items-center justify-between border-b border-charcoal-200 pb-5 sm:pb-6">
         <div>
-          <h1 className="font-serif text-3xl font-extrabold text-charcoal-950">Saved Articles</h1>
+          <h1 className="font-serif text-2xl sm:text-3xl font-extrabold text-charcoal-950">Saved Articles</h1>
           <p className="text-sm text-charcoal-500 mt-1">
             {bookmarks.length} {bookmarks.length === 1 ? "article" : "articles"} saved to your reading list
           </p>
@@ -59,7 +59,7 @@ const Bookmarks = () => {
 
       {/* Empty State */}
       {bookmarks.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 border border-dashed border-charcoal-200 rounded-xl text-center px-6 gap-5">
+        <div className="flex flex-col items-center justify-center py-16 sm:py-20 border border-dashed border-charcoal-200 rounded-xl text-center px-6 gap-5">
           <div className="h-16 w-16 rounded-full bg-charcoal-50 flex items-center justify-center">
             <FiBookmark className="h-7 w-7 text-charcoal-400" />
           </div>
@@ -71,7 +71,7 @@ const Bookmarks = () => {
           </div>
           <Link
             to="/"
-            className="flex items-center gap-2 px-5 py-2.5 bg-charcoal-950 text-white text-xs font-bold rounded-lg hover:bg-charcoal-800 transition-colors uppercase tracking-wider"
+            className="flex items-center gap-2 px-5 py-3 bg-charcoal-950 text-white text-xs font-bold rounded-lg hover:bg-charcoal-800 transition-colors uppercase tracking-wider touch-manipulation"
           >
             Browse Headlines <FiArrowRight className="h-3.5 w-3.5" />
           </Link>
@@ -90,12 +90,12 @@ const Bookmarks = () => {
             return (
               <div
                 key={bookmark._id}
-                className={`py-6 flex flex-col sm:flex-row gap-5 items-start group transition-opacity duration-200 ${isRemoving ? "opacity-40 pointer-events-none" : ""}`}
+                className={`py-5 sm:py-6 flex flex-col sm:flex-row gap-4 sm:gap-5 items-start group transition-opacity duration-200 ${isRemoving ? "opacity-40 pointer-events-none" : ""}`}
               >
                 {/* Thumbnail */}
                 <Link
                   to={`/article/${articleId}`}
-                  className="shrink-0 overflow-hidden rounded w-full sm:w-32 h-44 sm:h-24 bg-charcoal-50"
+                  className="shrink-0 overflow-hidden rounded-lg w-full sm:w-32 aspect-[16/10] sm:h-24 bg-charcoal-50"
                 >
                   <img
                     src={article.imageUrl || "https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=400&q=70"}
@@ -106,7 +106,7 @@ const Bookmarks = () => {
                 </Link>
 
                 {/* Content */}
-                <div className="flex-1 min-w-0 space-y-2">
+                <div className="flex-1 min-w-0 space-y-1.5 sm:space-y-2">
                   {/* Category & Source */}
                   <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-wider">
                     <span className="bg-charcoal-100 text-charcoal-700 px-2 py-0.5 rounded">
@@ -128,7 +128,7 @@ const Bookmarks = () => {
                   </p>
 
                   {/* Meta */}
-                  <div className="flex flex-wrap items-center gap-4 text-xs text-charcoal-400">
+                  <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-charcoal-400">
                     <span className="flex items-center gap-1">
                       <FiUser className="h-3 w-3" />
                       {article.author || "Unknown"}
@@ -144,7 +144,7 @@ const Bookmarks = () => {
                 <button
                   onClick={() => handleRemove(newsId)}
                   disabled={isRemoving}
-                  className="shrink-0 p-2 text-charcoal-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                  className="p-3 -m-3 sm:m-0 self-end sm:self-start text-charcoal-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors touch-manipulation"
                   aria-label="Remove bookmark"
                 >
                   {isRemoving ? (

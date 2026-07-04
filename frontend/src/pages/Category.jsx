@@ -184,26 +184,26 @@ const Category = () => {
   }, [categoryId, country, language, page, getCachedData, getNavigationState, sessionKey, setNavigationState]);
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8 sm:space-y-10">
       {/* Category Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-charcoal-200 pb-6 gap-6">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-charcoal-200 pb-5 sm:pb-6 gap-4">
         <div>
-          <span className="text-xs font-bold tracking-widest text-accent-blue uppercase mb-1.5 block">
+          <span className="text-xs font-bold tracking-widest text-accent-blue uppercase mb-1 block">
             Category
           </span>
-          <h1 className="font-serif text-4xl font-extrabold capitalize text-charcoal-950">
+          <h1 className="font-serif text-3xl sm:text-4xl font-extrabold capitalize text-charcoal-950">
             {categoryId} News
           </h1>
         </div>
 
         {/* Filter Controls */}
-        <div className="flex flex-wrap items-center gap-4 text-sm">
+        <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm self-start sm:self-auto">
           <div className="flex items-center gap-2">
             <FiGlobe className="text-charcoal-400 h-4 w-4" />
             <select
               value={country}
               onChange={(e) => setCountry(e.target.value)}
-              className="bg-white border border-charcoal-200 rounded px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:border-charcoal-900 transition-colors"
+              className="bg-white border border-charcoal-200 rounded px-2.5 py-2 text-xs font-medium focus:outline-none focus:border-charcoal-900 transition-colors touch-manipulation"
             >
               {COUNTRIES.map((c) => (
                 <option key={c.code} value={c.code}>
@@ -224,7 +224,7 @@ const Category = () => {
                 const langName = LANGUAGES.find((l) => l.code === newLang)?.name || newLang;
                 toast.success(`Reading language changed to ${langName}`);
               }}
-              className="bg-white border border-charcoal-200 rounded px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:border-charcoal-900 transition-colors"
+              className="bg-white border border-charcoal-200 rounded px-2.5 py-2 text-xs font-medium focus:outline-none focus:border-charcoal-900 transition-colors touch-manipulation"
               aria-label="Reading Language"
             >
               {LANGUAGES.map((l) => (
@@ -247,7 +247,7 @@ const Category = () => {
       ) : (
         <>
           {articles.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 border border-dashed border-charcoal-250 rounded-lg text-center p-6">
+            <div className="flex flex-col items-center justify-center py-16 border border-dashed border-charcoal-250 rounded-lg text-center p-6">
               <FiInfo className="h-8 w-8 text-charcoal-400 mb-3" />
               <h3 className="font-serif text-lg font-bold text-charcoal-800 mb-1">
                 No Articles Found
@@ -266,11 +266,11 @@ const Category = () => {
 
           {/* Pagination */}
           {(totalPages > 1 || hasNext) && (
-            <div className="flex items-center justify-center gap-2 pt-10 border-t border-charcoal-100">
+            <div className="flex items-center justify-center gap-4 pt-8 border-t border-charcoal-100">
               <button
                 disabled={page === 1}
                 onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-                className="px-4 py-2 text-xs font-bold border border-charcoal-200 rounded hover:bg-charcoal-50 disabled:opacity-50 transition-colors uppercase tracking-wider"
+                className="px-5 py-3 text-xs font-bold border border-charcoal-200 rounded-lg hover:bg-charcoal-50 disabled:opacity-50 transition-colors uppercase tracking-wider touch-manipulation min-w-[100px]"
               >
                 Previous
               </button>
@@ -282,7 +282,7 @@ const Category = () => {
               <button
                 disabled={!hasNext || loading}
                 onClick={() => setPage((prev) => prev + 1)}
-                className="px-4 py-2 text-xs font-bold border border-charcoal-200 rounded hover:bg-charcoal-50 disabled:opacity-50 transition-colors uppercase tracking-wider"
+                className="px-5 py-3 text-xs font-bold border border-charcoal-200 rounded-lg hover:bg-charcoal-50 disabled:opacity-50 transition-colors uppercase tracking-wider touch-manipulation min-w-[100px]"
               >
                 {loading ? "Loading…" : "Next"}
               </button>

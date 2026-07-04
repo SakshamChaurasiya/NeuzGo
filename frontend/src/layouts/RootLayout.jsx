@@ -48,7 +48,7 @@ const RootLayout = () => {
       {/* Main Content Area — animated on each page load */}
       <main
         key={pathname}
-        className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in"
+        className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 animate-fade-in"
       >
         <Outlet />
       </main>

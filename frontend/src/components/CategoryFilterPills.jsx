@@ -17,7 +17,7 @@ const CategoryFilterPills = ({ categories, selectedCategory, onChangeCategory })
               aria-selected={isActive}
               aria-controls="blog-posts-grid"
               onClick={() => onChangeCategory(cat)}
-              className={`px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-300 whitespace-nowrap flex-shrink-0 cursor-pointer ${
+              className={`px-5 py-3 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-300 whitespace-nowrap flex-shrink-0 cursor-pointer touch-manipulation ${
                 isActive
                   ? "bg-charcoal-900 text-white shadow-sm"
                   : "bg-charcoal-50 text-charcoal-600 hover:bg-charcoal-100"
