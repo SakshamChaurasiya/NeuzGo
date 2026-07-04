@@ -67,18 +67,14 @@ const getAdminUsers = async (req, res) => {
 const updateUser = async (req, res) => {
     try {
         const { id } = req.params;
-        const { username, email, phoneNumber, role, status } = req.body;
+        const { role } = req.body;
 
         const user = await User.findById(id);
         if (!user) {
             return res.status(404).json({ success: false, message: "User not found." });
         }
 
-        if (username !== undefined) user.username = username;
-        if (email !== undefined) user.email = email;
-        if (phoneNumber !== undefined) user.phoneNumber = phoneNumber;
         if (role !== undefined) user.role = role;
-        if (status !== undefined) user.status = status;
 
         await user.save();
 

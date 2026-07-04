@@ -99,7 +99,12 @@ const login = async (req, res) => {
         // 2. Find user by email
         const user = await User.findOne({ email: normalizedEmail });
         if (!user) {
-            return res.status(400).json({ message: "Invalid email or password." });
+            return res.status(400).json({ message: "Account doesn't exist." });
+        }
+
+        // Check if account is suspended
+        if (user.status === "Suspended") {
+            return res.status(403).json({ message: "User account suspended." });
         }
 
         // 3. Compare password

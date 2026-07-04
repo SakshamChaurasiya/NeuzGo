@@ -323,43 +323,21 @@ const AdminUsers = () => {
               </button>
             </div>
 
-            <form onSubmit={handleEditSubmit} className="p-6 space-y-4">
-              {/* Username */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Username</label>
-                <input
-                  type="text"
-                  required
-                  value={editForm.username}
-                  onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
-                  className="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500"
-                />
-              </div>
-
-              {/* Email */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Email Address</label>
-                <input
-                  type="email"
-                  required
-                  value={editForm.email}
-                  onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                  className="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500"
-                />
-              </div>
-
-              {/* Phone Number */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Mobile Number</label>
-                <input
-                  type="text"
-                  required
-                  pattern="[0-9]{10}"
-                  value={editForm.phoneNumber}
-                  onChange={(e) => setEditForm({ ...editForm, phoneNumber: e.target.value })}
-                  className="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500"
-                  placeholder="10 digit phone number"
-                />
+            <form onSubmit={handleEditSubmit} className="p-6 space-y-5">
+              {/* Read-Only Profile Metadata */}
+              <div className="bg-gray-50/70 p-4 border border-gray-200/50 rounded-xl space-y-3">
+                <div>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Username</span>
+                  <span className="text-xs font-semibold text-gray-800">{editingUser.username}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Email Address</span>
+                  <span className="text-xs font-semibold text-gray-800">{editingUser.email}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Mobile Number</span>
+                  <span className="text-xs font-semibold text-gray-800">{editingUser.phoneNumber}</span>
+                </div>
               </div>
 
               {/* Role Selector */}
@@ -368,11 +346,12 @@ const AdminUsers = () => {
                 <select
                   value={editForm.role}
                   onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
-                  className="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 bg-white font-semibold text-gray-700 cursor-pointer"
                 >
                   <option value="user">User</option>
                   <option value="admin">Admin</option>
                 </select>
+                <p className="text-[10px] text-gray-400">Modifying user role grants or revokes platform administrative privileges.</p>
               </div>
 
               {/* Actions */}
