@@ -10,6 +10,7 @@ const {
     getBlogDetails,
     toggleLike,
     reportBlog,
+    getImageKitAuth,
 } = require("../controllers/blog.controller");
 
 const router = express.Router();
@@ -19,6 +20,7 @@ router.use(protect);
 
 router.get("/", getApprovedBlogs);
 router.get("/my-blogs", getMyBlogs);
+router.get("/imagekit-auth", getImageKitAuth);
 router.post("/draft", createDraft);
 router.post("/:id/submit", submitForReview);
 router.put("/:id", updateDraft);

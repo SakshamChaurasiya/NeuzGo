@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { FiSave, FiSend, FiArrowLeft, FiImage, FiEye, FiEdit3 } from "react-icons/fi";
+import { FiSave, FiSend, FiArrowLeft, FiImage, FiEye, FiEdit3, FiUpload } from "react-icons/fi";
 import apiClient from "../api/client";
 import toast from "react-hot-toast";
 
@@ -28,6 +28,53 @@ const BlogEditor = () => {
   const [fetching, setFetching] = useState(false);
   const [activeTab, setActiveTab] = useState("edit"); // edit vs preview
 
+  const [imageSource, setImageSource] = useState("url"); // "url" | "upload"
+  const [uploading, setUploading] = useState(false);
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      // Get authentication parameters from backend
+      const authRes = await apiClient.get("/blogs/imagekit-auth");
+      if (!authRes.data?.success) {
+        throw new Error("Failed to retrieve upload parameters");
+      }
+      const { token, expire, signature, publicKey } = authRes.data.data;
+
+      // Prepare payload
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("fileName", `blog_${Date.now()}_${file.name}`);
+      formData.append("publicKey", publicKey);
+      formData.append("signature", signature);
+      formData.append("expire", expire);
+      formData.append("token", token);
+
+      // Upload to ImageKit
+      const response = await fetch("https://upload.imagekit.io/api/v1/files/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.message || "Upload to ImageKit failed");
+      }
+
+      const data = await response.json();
+      setImageUrl(data.url);
+      toast.success("Image uploaded successfully!");
+    } catch (err) {
+      console.error("Upload error:", err);
+      toast.error(err.message || "Failed to upload image. Verify ImageKit configuration.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   useEffect(() => {
     if (isEditMode) {
       const fetchBlogDetails = async () => {
@@ -39,12 +86,25 @@ const BlogEditor = () => {
           if (res.data?.success) {
             const blog = res.data.data.find((b) => b._id === id);
             if (blog) {
-              setTitle(blog.title || "");
-              setDescription(blog.description || "");
-              setContent(blog.content || "");
-              setImageUrl(blog.imageUrl || "");
-              setCategory(blog.category || "General");
-              setTagsInput(blog.tags ? blog.tags.join(", ") : "");
+              // Try to load unsaved draft from localStorage first
+              const savedDraft = localStorage.getItem(`blog_draft_${id}`);
+              if (savedDraft) {
+                const parsed = JSON.parse(savedDraft);
+                setTitle(parsed.title || "");
+                setDescription(parsed.description || "");
+                setContent(parsed.content || "");
+                setImageUrl(parsed.imageUrl || "");
+                setCategory(parsed.category || "General");
+                setTagsInput(parsed.tagsInput || "");
+                toast.success("Restored unsaved draft changes from browser.");
+              } else {
+                setTitle(blog.title || "");
+                setDescription(blog.description || "");
+                setContent(blog.content || "");
+                setImageUrl(blog.imageUrl || "");
+                setCategory(blog.category || "General");
+                setTagsInput(blog.tags ? blog.tags.join(", ") : "");
+              }
             } else {
               toast.error("Blog not found or unauthorized.");
               navigate("/profile");
@@ -58,8 +118,41 @@ const BlogEditor = () => {
         }
       };
       fetchBlogDetails();
+    } else {
+      // If not edit mode, check for blog_draft_new
+      const savedDraft = localStorage.getItem("blog_draft_new");
+      if (savedDraft) {
+        const parsed = JSON.parse(savedDraft);
+        setTitle(parsed.title || "");
+        setDescription(parsed.description || "");
+        setContent(parsed.content || "");
+        setImageUrl(parsed.imageUrl || "");
+        setCategory(parsed.category || "General");
+        setTagsInput(parsed.tagsInput || "");
+        toast.success("Restored unsaved draft from browser.");
+      }
     }
   }, [id, isEditMode, navigate]);
+
+  // Autosave changes to localStorage
+  useEffect(() => {
+    if (fetching) return;
+
+    // Avoid saving completely empty initial state
+    if (!title && !description && !content && !imageUrl && !tagsInput) return;
+
+    const draftData = {
+      title,
+      description,
+      content,
+      imageUrl,
+      category,
+      tagsInput,
+    };
+
+    const key = isEditMode ? `blog_draft_${id}` : "blog_draft_new";
+    localStorage.setItem(key, JSON.stringify(draftData));
+  }, [title, description, content, imageUrl, category, tagsInput, id, isEditMode, fetching]);
 
   const handleSave = async (submitAfterSave = false) => {
     if (!title.trim() || !description.trim() || !content.trim()) {
@@ -97,6 +190,13 @@ const BlogEditor = () => {
       }
 
       if (savedBlog) {
+        // Clear drafts from localStorage
+        const key = isEditMode ? `blog_draft_${id}` : "blog_draft_new";
+        localStorage.removeItem(key);
+        if (!isEditMode) {
+          localStorage.removeItem("blog_draft_new");
+        }
+
         if (submitAfterSave) {
           const submitResponse = await apiClient.post(`/blogs/${savedBlog._id}/submit`);
           if (submitResponse.data?.success) {
@@ -198,28 +298,86 @@ const BlogEditor = () => {
             {/* Grid for Cover Image, Category, Tags */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-charcoal-500 flex items-center gap-1.5">
-                  <FiImage className="h-3.5 w-3.5" /> Cover Image URL
-                </label>
-                <input
-                  type="text"
-                  placeholder="https://example.com/image.jpg"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  className="w-full px-4 py-2 text-sm border border-charcoal-200 rounded-lg focus:outline-none focus:border-charcoal-900 transition-colors"
-                />
-                <div className="flex gap-2 mt-1">
-                  <span className="text-[10px] text-charcoal-400 font-bold self-center">Presets:</span>
-                  {PRESETS.map((p, idx) => (
+                <label className="text-xs font-bold uppercase tracking-wider text-charcoal-500 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5"><FiImage className="h-3.5 w-3.5" /> Cover Image</span>
+                  <span className="flex gap-2">
                     <button
-                      key={idx}
-                      onClick={() => setImageUrl(p)}
-                      className="text-[10px] font-semibold text-indigo-600 hover:underline"
+                      type="button"
+                      onClick={() => setImageSource("url")}
+                      className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all ${
+                        imageSource === "url"
+                          ? "bg-charcoal-900 text-white"
+                          : "bg-charcoal-100 text-charcoal-600 hover:bg-charcoal-200"
+                      }`}
                     >
-                      Image {idx + 1}
+                      URL
                     </button>
-                  ))}
-                </div>
+                    <button
+                      type="button"
+                      onClick={() => setImageSource("upload")}
+                      className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all ${
+                        imageSource === "upload"
+                          ? "bg-charcoal-900 text-white"
+                          : "bg-charcoal-100 text-charcoal-600 hover:bg-charcoal-200"
+                      }`}
+                    >
+                      Upload
+                    </button>
+                  </span>
+                </label>
+
+                {imageSource === "url" ? (
+                  <>
+                    <input
+                      type="text"
+                      placeholder="https://example.com/image.jpg"
+                      value={imageUrl}
+                      onChange={(e) => setImageUrl(e.target.value)}
+                      className="w-full px-4 py-2 text-sm border border-charcoal-200 rounded-lg focus:outline-none focus:border-charcoal-900 transition-colors"
+                    />
+                    <div className="flex gap-2 mt-1">
+                      <span className="text-[10px] text-charcoal-400 font-bold self-center">Presets:</span>
+                      {PRESETS.map((p, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setImageUrl(p)}
+                          className="text-[10px] font-semibold text-indigo-600 hover:underline"
+                        >
+                          Image {idx + 1}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="relative border border-dashed border-charcoal-200 rounded-lg p-4 flex flex-col items-center justify-center bg-charcoal-50/50 hover:bg-charcoal-50 transition-colors h-[72px]">
+                    {uploading ? (
+                      <div className="flex flex-col items-center gap-1.5">
+                        <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-xs text-charcoal-500 font-semibold">Uploading to ImageKit...</span>
+                      </div>
+                    ) : (
+                      <>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        />
+                        <div className="flex flex-col items-center text-center">
+                          <FiUpload className="h-5 w-5 text-charcoal-400 mb-1" />
+                          <span className="text-xs font-semibold text-charcoal-600">Click to upload cover image</span>
+                          <span className="text-[9px] text-charcoal-400">Supports PNG, JPG, JPEG, WEBP</span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+                {imageUrl && !uploading && (
+                  <div className="text-[10px] text-emerald-600 font-semibold mt-1 truncate">
+                    ✓ Image source set: {imageUrl}
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">

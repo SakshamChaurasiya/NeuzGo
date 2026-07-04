@@ -287,39 +287,60 @@ const AdminBlogs = () => {
 
       {/* Preview Blog Modal */}
       {previewBlog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm overflow-y-auto">
-          <div className="bg-white w-full max-w-2xl rounded-xl border border-gray-200 shadow-xl overflow-hidden my-8 animate-scale-up">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100 bg-gray-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-950/50 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-2xl rounded-2xl border border-gray-100 shadow-2xl flex flex-col max-h-[85vh] md:max-h-[90vh] overflow-hidden animate-scale-up">
+            {/* Header (Sticky) */}
+            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100 bg-gray-50/80 backdrop-blur-sm flex-shrink-0">
               <div>
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">Author Story Preview</span>
-                <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider truncate max-w-md">Blog Preview</h3>
+                <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full uppercase tracking-wider block w-fit mb-1">Author Story Preview</span>
+                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Blog Preview</h3>
               </div>
-              <button onClick={() => setPreviewBlog(null)} className="p-1 rounded text-gray-400 hover:text-gray-600">
+              <button onClick={() => setPreviewBlog(null)} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
                 <FiX className="w-5 h-5" />
               </button>
             </div>
-            <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
-              {previewBlog.imageUrl && (
-                <img src={previewBlog.imageUrl} alt="" className="w-full h-64 object-cover rounded-lg border border-gray-100 shadow-sm" />
-              )}
-              <h2 className="text-xl font-extrabold text-gray-900 leading-tight">{previewBlog.title}</h2>
-              <div className="flex items-center gap-4 text-xs text-gray-400">
-                <span>Written by: <strong>{previewBlog.author?.username}</strong></span>
-                <span>•</span>
-                <span>Category: <strong>{previewBlog.category}</strong></span>
-                <span>•</span>
-                <span>Created: <strong>{new Date(previewBlog.createdAt).toLocaleString()}</strong></span>
-              </div>
-              {previewBlog.rejectionReason && (
-                <div className="p-4 bg-red-50 border border-red-100 rounded-lg text-xs text-red-700">
-                  <strong>Rejection Reason:</strong> {previewBlog.rejectionReason}
+
+            {/* Content (Scrollable) */}
+            <div className="p-6 space-y-6 overflow-y-auto flex-grow text-xs leading-relaxed text-gray-700">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+                {previewBlog.imageUrl && (
+                  <div className="md:col-span-1">
+                    <img src={previewBlog.imageUrl} alt="Cover" className="w-full h-32 md:h-36 object-cover rounded-xl border border-gray-100 shadow-sm bg-gray-50" />
+                  </div>
+                )}
+                <div className={previewBlog.imageUrl ? "md:col-span-2 space-y-3" : "col-span-full space-y-3"}>
+                  <h2 className="text-lg font-extrabold text-gray-900 leading-tight">{previewBlog.title}</h2>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-gray-400">
+                    <span>Written by: <strong className="text-gray-600">{previewBlog.author?.username}</strong></span>
+                    <span>•</span>
+                    <span>Category: <strong className="text-gray-600">{previewBlog.category}</strong></span>
+                    <span>•</span>
+                    <span>Created: <strong className="text-gray-600">{new Date(previewBlog.createdAt).toLocaleString()}</strong></span>
+                  </div>
+                  {previewBlog.rejectionReason && (
+                    <div className="p-3 bg-red-50 border border-red-100 rounded-lg text-xs text-red-700">
+                      <strong>Rejection Reason:</strong> {previewBlog.rejectionReason}
+                    </div>
+                  )}
+                  <p className="text-xs leading-relaxed text-gray-600 bg-gray-50/50 p-3.5 border border-gray-200/50 rounded-xl italic leading-relaxed">
+                    "{previewBlog.description}"
+                  </p>
                 </div>
-              )}
-              <p className="text-xs leading-relaxed text-gray-600 bg-gray-50 p-4 border border-gray-100 rounded-lg italic">"{previewBlog.description}"</p>
-              <div className="text-xs leading-relaxed text-gray-700 whitespace-pre-wrap">{previewBlog.content}</div>
+              </div>
+
+              <hr className="border-gray-100" />
+
+              <div className="space-y-2">
+                <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Blog Content</h4>
+                <div className="text-xs leading-relaxed text-gray-700 whitespace-pre-wrap bg-gray-50/30 border border-gray-100 p-5 rounded-xl font-sans antialiased">
+                  {previewBlog.content}
+                </div>
+              </div>
             </div>
-            <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-2 bg-gray-50">
-              <button onClick={() => setPreviewBlog(null)} className="px-4 py-2 border border-gray-200 text-xs font-semibold rounded-lg text-gray-600 hover:bg-gray-100">
+
+            {/* Footer (Sticky) */}
+            <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-2 bg-gray-50/80 backdrop-blur-sm flex-shrink-0">
+              <button onClick={() => setPreviewBlog(null)} className="px-4 py-2 border border-gray-200 hover:border-gray-300 text-xs font-semibold rounded-lg text-gray-600 hover:bg-gray-100 transition-colors">
                 Close
               </button>
               {previewBlog.status === "Pending" && (
@@ -329,7 +350,7 @@ const AdminBlogs = () => {
                       handleApprove(previewBlog._id);
                       setPreviewBlog(null);
                     }}
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-xs font-semibold text-white rounded-lg"
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-xs font-semibold text-white rounded-lg transition-colors shadow-sm"
                   >
                     Approve & Publish
                   </button>
@@ -338,7 +359,7 @@ const AdminBlogs = () => {
                       handleOpenReject(previewBlog);
                       setPreviewBlog(null);
                     }}
-                    className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-xs font-semibold text-white rounded-lg"
+                    className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-xs font-semibold text-white rounded-lg transition-colors shadow-sm"
                   >
                     Reject
                   </button>

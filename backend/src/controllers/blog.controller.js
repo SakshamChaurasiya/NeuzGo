@@ -318,6 +318,26 @@ const reportBlog = async (req, res) => {
     }
 };
 
+const getImageKitAuth = async (req, res) => {
+    try {
+        const imagekit = require("../config/imagekit");
+        const authParams = imagekit.getAuthenticationParameters();
+        return res.status(200).json({
+            success: true,
+            data: {
+                ...authParams,
+                publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
+            },
+        });
+    } catch (error) {
+        console.error("ImageKit auth error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to generate ImageKit authentication parameters.",
+        });
+    }
+};
+
 module.exports = {
     createDraft,
     updateDraft,
@@ -328,4 +348,5 @@ module.exports = {
     getBlogDetails,
     toggleLike,
     reportBlog,
+    getImageKitAuth,
 };

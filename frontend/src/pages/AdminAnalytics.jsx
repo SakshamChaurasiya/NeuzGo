@@ -78,7 +78,7 @@ const AdminAnalytics = () => {
                 const maxCount = Math.max(...charts.userRegistrations.map(x => x.count), 1);
                 const pct = (d.count / maxCount) * 85;
                 return (
-                  <div key={i} className="flex flex-col items-center flex-1 group">
+                  <div key={i} className="flex flex-col items-center flex-1 group h-full justify-end">
                     <div className="relative w-8 bg-blue-500 hover:bg-blue-600 rounded-t-sm transition-all cursor-pointer" style={{ height: `${pct || 4}%` }}>
                       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block bg-slate-900 text-white text-[10px] py-1 px-2 rounded whitespace-nowrap z-10">
                         {d.count} New Users

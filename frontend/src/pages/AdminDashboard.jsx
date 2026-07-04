@@ -226,7 +226,7 @@ const AdminDashboard = () => {
                   const maxCount = Math.max(...chartData.newsPublished.map(n => n.count), 1);
                   const pct = (d.count / maxCount) * 85; // Max 85% height
                   return (
-                    <div key={index} className="flex flex-col items-center flex-1 group">
+                    <div key={index} className="flex flex-col items-center flex-1 group h-full justify-end">
                       <div className="relative w-8 bg-blue-500/80 group-hover:bg-blue-600 rounded-t-sm transition-all duration-300 cursor-pointer" style={{ height: `${pct || 5}%` }}>
                         {/* Tooltip */}
                         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block bg-slate-900 text-white text-[10px] py-1 px-2 rounded whitespace-nowrap z-10 shadow-lg">
