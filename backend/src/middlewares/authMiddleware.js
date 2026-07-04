@@ -25,6 +25,10 @@ const protect = async (req, res, next) => {
                 return res.status(401).json({ message: "Not authorized, user not found" });
             }
 
+            if (req.user.status === "Suspended") {
+                return res.status(403).json({ message: "Access denied. Your account is suspended." });
+            }
+
             return next();
         } catch (error) {
             console.error("Auth middleware error:", error);

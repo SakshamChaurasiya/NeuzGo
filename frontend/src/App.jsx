@@ -3,6 +3,8 @@ import { Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import RootLayout from "./layouts/RootLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminProtectedRoute from "./components/AdminProtectedRoute";
+import AdminLayout from "./layouts/AdminLayout";
 import ScrollToTop from "./components/ScrollToTop";
 
 // Lazy-loaded pages for optimization and code-splitting
@@ -18,6 +20,15 @@ const Horoscope = lazy(() => import("./pages/Horoscope"));
 const BlogEditor = lazy(() => import("./pages/BlogEditor"));
 const BlogFeed = lazy(() => import("./pages/BlogFeed"));
 const BlogDetails = lazy(() => import("./pages/BlogDetails"));
+
+// Admin pages
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const AdminNews = lazy(() => import("./pages/AdminNews"));
+const AdminBlogs = lazy(() => import("./pages/AdminBlogs"));
+const AdminUsers = lazy(() => import("./pages/AdminUsers"));
+const AdminRequests = lazy(() => import("./pages/AdminRequests"));
+const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
+const AdminSettings = lazy(() => import("./pages/AdminSettings"));
 
 // Premium Loading Skeleton
 const PageSkeleton = () => (
@@ -113,6 +124,24 @@ function App() {
               </div>
             }
           />
+        </Route>
+
+        {/* Dedicated Protected Admin Dashboard Section */}
+        <Route
+          path="/admin"
+          element={
+            <AdminProtectedRoute>
+              <AdminLayout />
+            </AdminProtectedRoute>
+          }
+        >
+          <Route index element={<AdminDashboard />} />
+          <Route path="news" element={<AdminNews />} />
+          <Route path="blogs" element={<AdminBlogs />} />
+          <Route path="users" element={<AdminUsers />} />
+          <Route path="requests" element={<AdminRequests />} />
+          <Route path="analytics" element={<AdminAnalytics />} />
+          <Route path="settings" element={<AdminSettings />} />
         </Route>
       </Routes>
       <Toaster position="bottom-right" />

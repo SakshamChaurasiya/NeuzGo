@@ -99,6 +99,12 @@ const newsSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    status: {
+      type: String,
+      enum: ["Pending", "Approved", "Rejected"],
+      default: "Approved",
+      index: true,
+    },
   },
   {
     timestamps: true,

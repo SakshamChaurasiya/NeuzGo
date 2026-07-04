@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 import { useAuth } from "../contexts/AuthContext";
 
 const Login = () => {
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
@@ -15,7 +15,11 @@ const Login = () => {
 
   // Redirect if already logged in
   if (isAuthenticated) {
-    navigate("/");
+    if (user?.role === "admin") {
+      navigate("/admin");
+    } else {
+      navigate("/");
+    }
     return null;
   }
 
@@ -31,6 +35,16 @@ const Login = () => {
 
     if (result.success) {
       toast.success("Welcome back!");
+      // Since refreshProfile is done asynchronously, let's fetch profile first or check token role
+      // But we can check user role in useEffect or just navigate using a temporary local check
+      const token = localStorage.getItem("neuzgo_token");
+      try {
+        const decoded = JSON.parse(atob(token.split(".")[1]));
+        if (decoded.role === "admin") {
+          navigate("/admin");
+          return;
+        }
+      } catch (err) {}
       navigate("/");
     } else {
       toast.error(result.message || "Login failed. Please try again.");

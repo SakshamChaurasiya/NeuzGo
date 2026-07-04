@@ -9,6 +9,9 @@ const bookmarkRoutes = require("./routes/bookmark.routes");
 const horoscopeRoutes = require("./routes/horoscope.routes");
 const blogRoutes = require("./routes/blog.routes");
 const adminBlogRoutes = require("./routes/adminBlog.routes");
+const adminUserRoutes = require("./routes/adminUser.routes");
+const adminNewsRoutes = require("./routes/adminNews.routes");
+const adminAnalyticsRoutes = require("./routes/adminAnalytics.routes");
 const { initCron } = require("./config/cron");
 
 const app = express();
@@ -36,6 +39,9 @@ app.use("/api/bookmarks", bookmarkRoutes);
 app.use("/api/horoscope", horoscopeRoutes);
 app.use("/api/blogs", blogRoutes);
 app.use("/api/admin/blogs", adminBlogRoutes);
+app.use("/api/admin/users", adminUserRoutes);
+app.use("/api/admin/news", adminNewsRoutes);
+app.use("/api/admin/analytics", adminAnalyticsRoutes);
 
 app.listen(PORT, () => {
     console.log(`App is listening on PORT: ${PORT}`);
