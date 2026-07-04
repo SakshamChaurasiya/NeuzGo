@@ -1,6 +1,6 @@
 # NeuzGo — Premium News & Community Platform
 
-NeuzGo is a premium independent news platform delivering curated, high-quality headlines and in-depth reporting from around the globe. It features a community blogging system where readers can become writers, and an admin moderation dashboard to maintain editorial quality. Built with a focus on readability, elegant design, and fast performance.
+NeuzGo is a premium independent news platform delivering curated, high-quality headlines and in-depth reporting from around the globe. It features a community blogging system where readers can become writers, a personalized Horoscope module with shareable cosmic reading cards, and an admin moderation dashboard to maintain editorial quality. Built with a focus on readability, elegant design, and fast performance.
 
 ## Project Structure
 
@@ -15,7 +15,7 @@ NeuzGo/
 │   │   │   ├── auth.controller.js
 │   │   │   ├── news.controller.js
 │   │   │   ├── bookmark.controller.js
-│   │   │   ├── horoscope.controller.js
+│   │   │   ├── horoscope.controller.js     # Daily readings + history endpoint
 │   │   │   ├── blog.controller.js
 │   │   │   └── adminBlog.controller.js
 │   │   ├── jobs/             # Scheduled background tasks (node-cron news sync)
@@ -23,10 +23,11 @@ NeuzGo/
 │   │   │   ├── authMiddleware.js   # JWT verification
 │   │   │   └── adminMiddleware.js  # Role-based access control (admin only)
 │   │   ├── models/           # Mongoose schemas
-│   │   │   ├── user.model.js           # User with role & zodiacSign fields
+│   │   │   ├── user.model.js               # User with role & zodiacSign fields
 │   │   │   ├── news.model.js
 │   │   │   ├── bookmark.model.js
-│   │   │   ├── blogs.model.js          # Blog with editorial workflow states
+│   │   │   ├── blogs.model.js              # Blog with editorial workflow states
+│   │   │   ├── horoscopeHistory.model.js   # Persisted past daily readings
 │   │   │   └── translationCache.model.js
 │   │   ├── routes/           # API route definitions
 │   │   │   ├── auth.routes.js
@@ -48,8 +49,9 @@ NeuzGo/
     │   ├── components/       # Reusable UI components
     │   │   ├── Navbar.jsx
     │   │   ├── HeroSlider.jsx
-    │   │   ├── ArticleCard.jsx
-    │   │   ├── BlogPostCard.jsx
+    │   │   ├── ArticleCard.jsx          # News card with Bookmark + Share buttons
+    │   │   ├── BlogPostCard.jsx         # Blog card with Share button
+    │   │   ├── ShareHoroscopeCard.jsx   # Horoscope share modal + canvas card generator
     │   │   ├── BlogSectionHeader.jsx
     │   │   ├── FeaturedPostCard.jsx
     │   │   ├── CategoryFilterPills.jsx
@@ -62,13 +64,14 @@ NeuzGo/
     │   ├── pages/            # View components mapping to routes
     │   │   ├── Home.jsx
     │   │   ├── Category.jsx
-    │   │   ├── ArticleDetails.jsx
+    │   │   ├── ArticleDetails.jsx       # Article page with Share + Bookmark actions
     │   │   ├── Search.jsx
     │   │   ├── Bookmarks.jsx
     │   │   ├── Profile.jsx
-    │   │   ├── Horoscope.jsx
+    │   │   ├── Horoscope.jsx            # Daily + Weekly + Monthly toggle views
+    │   │   ├── SharedHoroscope.jsx      # Public shareable horoscope card page
     │   │   ├── BlogFeed.jsx
-    │   │   ├── BlogDetails.jsx
+    │   │   ├── BlogDetails.jsx          # Blog page with Like, Report & Share actions
     │   │   ├── BlogEditor.jsx
     │   │   ├── Login.jsx
     │   │   └── Signup.jsx
@@ -140,5 +143,4 @@ Visit `http://localhost:5173` to view the application.
 
 ## Technologies Used
 **Backend:** Node.js, Express.js, MongoDB, Mongoose, JSON Web Tokens (JWT), Node-cron, Axios, Translation API, Server-Sent Events (SSE).  
-**Frontend:** React 18, Vite, React Router DOM, Tailwind CSS v3, React Hot Toast, React Icons, Framer Motion.
-
+**Frontend:** React 19, Vite, React Router DOM v7, Tailwind CSS v3, React Hot Toast, React Icons, Framer Motion.

@@ -1,6 +1,6 @@
 # NeuzGo Features
 
-NeuzGo is designed to offer a premium reading experience, robust user management, a community blogging platform, and seamless backend synchronization. Below is the comprehensive list of features implemented in the project.
+NeuzGo is designed to offer a premium reading experience, robust user management, a community blogging platform, shareable content, and seamless backend synchronization. Below is the comprehensive list of features implemented in the project.
 
 ## Feature Overview
 
@@ -31,9 +31,16 @@ NeuzGo is designed to offer a premium reading experience, robust user management
 | **Article Reading Experience** | Premium, distraction-free article layout using elegant typography. | ✅ |
 | | Reading progress tracker bar at the top of the article page. | ✅ |
 | | Social share links (Twitter, LinkedIn, Facebook, Direct Link). | ✅ |
+| | Share button on article cards — copies article link to clipboard via one click. | ✅ |
 | | "Related Articles" sidebar populated via server-side category matching. | ✅ |
 | **Horoscope Module** | Daily zodiac readings with premium, animated celestial UI theme. | ✅ |
 | | Scoring-based article classifier to match articles to zodiac signs. | ✅ |
+| | Weekly & Monthly history toggle views with a timeline UI for past readings. | ✅ |
+| | Horoscope history persisted to MongoDB (`horoscopeHistory` model). | ✅ |
+| | **Shareable Horoscope Card** — "Share Reading" button generates a 1080×1920px (Instagram Story) branded card via native HTML5 Canvas (zero external dependencies). | ✅ |
+| | Interactive share modal with live card preview, Download PNG option, and Share via Link option. | ✅ |
+| | Share via Link generates a clean Base64-encoded public URL (`/shared-horoscope?card=...`) with no raw data exposed. | ✅ |
+| | Public `/shared-horoscope` page shows the card with "✨ [User Name] shared this card" attribution and a download option — no login required. | ✅ |
 | | Horoscope page is protected — requires user authentication. | ✅ |
 | **Translation Layer** | Scalable, on-demand Translation Layer in the backend. | ✅ |
 | | Translations cached in MongoDB by article ID + language to avoid redundant API calls. | ✅ |
@@ -46,6 +53,8 @@ NeuzGo is designed to offer a premium reading experience, robust user management
 | | Like / toggle-like system with per-user like tracking. | ✅ |
 | | Report blog posts for admin review. | ✅ |
 | | Unique view count tracking per visitor. | ✅ |
+| | Share button on blog cards — copies blog link to clipboard. | ✅ |
+| | Share button on the Blog Details page — copies the current blog URL to clipboard. | ✅ |
 | | Blog Feed page (editorial magazine-style) for approved posts. | ✅ |
 | | Blog Editor page with rich-text creation and editing flow. | ✅ |
 | | Blog Details page with full content, author info, and social interactions. | ✅ |
@@ -73,6 +82,9 @@ NeuzGo is designed to offer a premium reading experience, robust user management
 
 **Architecture Strategy**
 NeuzGo employs an API-first backend that acts as a secure intermediary and caching layer. Instead of the frontend directly querying external news APIs (which exposes keys and risks rate limits), the backend independently syncs data into a local MongoDB database. The frontend then queries this local database.
+
+**Shareable Horoscope Card (Client-Side Canvas)**
+The Share Reading feature generates a high-resolution 1080×1920px card image entirely in-browser using the native HTML5 `<canvas>` API — no external libraries or backend calls required. The card includes the NeuzGo brand, zodiac symbol, date, reading text, lucky attributes, orbit ring decorations, and a cosmic gradient. Sharing encodes all card data into a compact Base64 token appended as a single `?card=` URL parameter, keeping links clean and human-readable while keeping the raw reading data private.
 
 **Blog Editorial Workflow**
 User-authored content moves through a structured pipeline: `Draft → Pending Review → Approved / Rejected`. Only approved posts are visible on the public Blog Feed. Admins can moderate posts through a protected admin API. Access control is enforced at both the middleware and controller level — a user must be the original author or hold the `admin` role to delete a post.
