@@ -4,6 +4,7 @@ import { FiSearch, FiX, FiInfo, FiLoader } from "react-icons/fi";
 import apiClient from "../api/client";
 import ArticleCard from "../components/ArticleCard";
 import { useNavigationState } from "../contexts/NavigationStateContext";
+import { useTranslationStream } from "../hooks/useTranslationStream";
 
 const Search = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -22,6 +23,25 @@ const Search = () => {
   const [page, setPage] = useState(savedState.page || 1);
   const [totalPages, setTotalPages] = useState(savedState.totalPages || 1);
   const [hasNext, setHasNext] = useState(savedState.hasNext || false);
+
+  const language = localStorage.getItem("readingLanguage") || "en";
+
+  const handleTranslationUpdate = useCallback((data) => {
+    setResults((prev) =>
+      prev.map((art) =>
+        art._id === data.articleId
+          ? {
+              ...art,
+              title: data.title,
+              description: data.description,
+              translationPending: false,
+            }
+          : art
+      )
+    );
+  }, []);
+
+  useTranslationStream(language, handleTranslationUpdate);
 
   const suggestionRef = useRef(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -54,6 +74,7 @@ const Search = () => {
           search: searchVal,
           page: currentPage,
           limit: 12,
+          language,
         },
       });
       if (response.data && response.data.success) {
@@ -109,7 +130,7 @@ const Search = () => {
       setLoadingSuggestions(true);
       try {
         const response = await apiClient.get("/news", {
-          params: { search: searchQuery, limit: 5 },
+          params: { search: searchQuery, limit: 5, language },
         });
         if (response.data && response.data.success) {
           setSuggestions(response.data.data);

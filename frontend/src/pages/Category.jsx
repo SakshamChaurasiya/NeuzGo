@@ -6,6 +6,7 @@ import { FiFilter, FiGlobe, FiInfo } from "react-icons/fi";
 import usePrefetch from "../hooks/usePrefetch";
 import { useNavigationState } from "../contexts/NavigationStateContext";
 import toast from "react-hot-toast";
+import { useTranslationStream } from "../hooks/useTranslationStream";
 
 const COUNTRIES = [
   { code: "in", name: "India" },
@@ -37,14 +38,31 @@ const Category = () => {
   const [articles, setArticles] = useState(savedState.articles || []);
   const [loading, setLoading] = useState(!savedState.articles);
 
-  // Country is per-category session (user can change per-page)
-  const [country, setCountry] = useState(savedState.country || "in");
-
   // Language is a GLOBAL preference — always read from localStorage, never per-category session.
   // This ensures switching pages never resets the user's chosen reading language.
   const [language, setLanguage] = useState(
     localStorage.getItem("readingLanguage") || "en"
   );
+
+  const handleTranslationUpdate = React.useCallback((data) => {
+    setArticles((prev) =>
+      prev.map((art) =>
+        art._id === data.articleId
+          ? {
+              ...art,
+              title: data.title,
+              description: data.description,
+              translationPending: false,
+            }
+          : art
+      )
+    );
+  }, []);
+
+  useTranslationStream(language, handleTranslationUpdate);
+
+  // Country is per-category session (user can change per-page)
+  const [country, setCountry] = useState(savedState.country || "in");
 
 
 

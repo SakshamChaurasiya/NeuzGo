@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { FiCalendar, FiUser, FiBookmark, FiShare2, FiArrowLeft, FiArrowUp } from "react-icons/fi";
 import { FaBookmark } from "react-icons/fa";
@@ -7,6 +7,7 @@ import apiClient from "../api/client";
 import ArticleCard from "../components/ArticleCard";
 import { useBookmarks } from "../contexts/BookmarkContext";
 import { useAuth } from "../contexts/AuthContext";
+import { useTranslationStream } from "../hooks/useTranslationStream";
 
 const languageNames = {
   en: "English",
@@ -45,6 +46,41 @@ const ArticleDetails = () => {
   const { isBookmarked, addBookmark, removeBookmark } = useBookmarks();
   const { isAuthenticated } = useAuth();
   const bookmarked = article ? isBookmarked(article._id) : false;
+
+  const language = localStorage.getItem("readingLanguage") || "en";
+
+  const handleTranslationUpdate = useCallback((data) => {
+    // 1. Update main article if matches
+    setArticle((prev) => {
+      if (prev && prev._id === data.articleId) {
+        return {
+          ...prev,
+          title: data.title,
+          description: data.description,
+          content: data.content || prev.content,
+          translationPending: false,
+          language: data.language,
+        };
+      }
+      return prev;
+    });
+
+    // 2. Update related articles if matches
+    setRelated((prev) =>
+      prev.map((art) =>
+        art._id === data.articleId
+          ? {
+              ...art,
+              title: data.title,
+              description: data.description,
+              translationPending: false,
+            }
+          : art
+      )
+    );
+  }, []);
+
+  useTranslationStream(language, handleTranslationUpdate);
 
   // Track Reading Progress and Scroll-to-Top visibility
   useEffect(() => {
@@ -217,7 +253,11 @@ const ArticleDetails = () => {
 
             {/* Headline */}
             <h1 className="font-serif text-3xl sm:text-5xl font-extrabold text-charcoal-950 leading-tight">
-              {article.title}
+              {article.translationPending ? (
+                <div className="h-12 bg-charcoal-100 skeleton w-full"></div>
+              ) : (
+                article.title
+              )}
             </h1>
 
             {article.originalLanguage && article.language && article.originalLanguage !== article.language && (
@@ -296,13 +336,30 @@ const ArticleDetails = () => {
             </p>
 
             {/* Description / Summary */}
-            <p className="font-sans text-lg text-charcoal-800 leading-relaxed font-semibold border-l-3 border-charcoal-800 pl-4">
-              {article.description}
-            </p>
+            <div className="border-l-3 border-charcoal-800 pl-4">
+              {article.translationPending ? (
+                <div className="space-y-2">
+                  <div className="h-5 bg-charcoal-100 skeleton w-full"></div>
+                  <div className="h-5 bg-charcoal-100 skeleton w-5/6"></div>
+                </div>
+              ) : (
+                <p className="font-sans text-lg text-charcoal-800 leading-relaxed font-semibold">
+                  {article.description}
+                </p>
+              )}
+            </div>
 
             {/* Article Content Body (High-quality serif font, comfortable spacing) */}
             <div className="font-serif text-lg text-charcoal-850 leading-loose space-y-6 pt-4">
-              {article.content ? (
+              {article.translationPending ? (
+                <div className="space-y-4">
+                  <div className="h-5 bg-charcoal-100 skeleton w-full"></div>
+                  <div className="h-5 bg-charcoal-100 skeleton w-full"></div>
+                  <div className="h-5 bg-charcoal-100 skeleton w-4/5"></div>
+                  <div className="h-5 bg-charcoal-100 skeleton w-full mt-6"></div>
+                  <div className="h-5 bg-charcoal-100 skeleton w-5/6"></div>
+                </div>
+              ) : article.content ? (
                 renderContent(article.content)
               ) : (
                 <p>

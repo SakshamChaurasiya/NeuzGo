@@ -3,6 +3,7 @@ const News = require("../models/news.model");
 const { fetchArticles } = require("../service/providerManager.service");
 const NewsCursor = mongoose.model("NewsCursor");
 const translationService = require("../service/translation.service");
+const TranslationCache = require("../models/translationCache.model");
 
 
 // ─── Configuration ─────────────────────────────────────────────────────────────
@@ -229,16 +230,39 @@ const getNews = async (req, res) => {
     const hasNext = articles.length === limit;
     const totalPages = hasNext ? Math.max(Math.ceil(total / limit), page + 1) : Math.ceil(total / limit);
 
-    // Translate the articles for card display (title and description only) sequentially
-    const translatedArticles = [];
-    for (const art of articles) {
-      const trans = await translationService.translateArticleCard(art, language);
-      translatedArticles.push(trans);
-      // Pacing delay (10ms)
-      await new Promise((resolve) => setTimeout(resolve, 10));
-    }
+    // Check cache or queue translation for each article in parallel, returning immediately
+    const translatedArticles = await Promise.all(
+      articles.map(async (art) => {
+        const origLang = translationService.getOriginalLanguage(art);
+        if (language === origLang) {
+          return art;
+        }
 
-    console.log(`[News] 📤 Returning ${translatedArticles.length} articles (total: ${total}, hasNext: ${hasNext}, totalPages: ${totalPages})`);
+        const articleId = String(art._id);
+        const cached = await TranslationCache.findOne({ articleId, language }).lean();
+        if (cached) {
+          return {
+            ...art,
+            title: cached.title,
+            description: cached.description,
+            language,
+          };
+        }
+
+        // Cache miss -> enqueue translation job in the background (priority 1)
+        translationService.translateArticleCard(art, language, 1).catch((err) => {
+          console.error(`[News Controller] Background translation failed for article ${articleId}:`, err.message);
+        });
+
+        // Return immediately with placeholder flag
+        return {
+          ...art,
+          translationPending: true,
+        };
+      })
+    );
+
+    console.log(`[News] 📤 Returning ${translatedArticles.length} articles immediately (total: ${total}, hasNext: ${hasNext}, totalPages: ${totalPages})`);
 
     // Optionally prefetch and translate the next page in the background
     if (hasNext) {
@@ -281,11 +305,40 @@ const getNewsById = async (req, res) => {
     }
 
     const readingLanguage = req.query.language || CONFIG.DEFAULT_LANGUAGE;
-    const translatedArticle = await translationService.translateArticleDetails(article, readingLanguage);
+    const origLang = translationService.getOriginalLanguage(article);
+    if (readingLanguage === origLang) {
+      return res.status(200).json({
+        success: true,
+        data: article,
+      });
+    }
+
+    const articleId = String(article._id);
+    const cached = await TranslationCache.findOne({ articleId, language: readingLanguage }).lean();
+    if (cached && cached.content) {
+      return res.status(200).json({
+        success: true,
+        data: {
+          ...article,
+          title: cached.title,
+          description: cached.description,
+          content: cached.content,
+          language: readingLanguage,
+        },
+      });
+    }
+
+    // Cache miss -> enqueue full translation in the background (priority 1)
+    translationService.translateArticleDetails(article, readingLanguage, 1).catch((err) => {
+      console.error(`[News Controller] Background full translation failed for article ${articleId}:`, err.message);
+    });
 
     return res.status(200).json({
       success: true,
-      data: translatedArticle,
+      data: {
+        ...article,
+        translationPending: true,
+      },
     });
   } catch (err) {
     return res.status(500).json({
@@ -295,7 +348,45 @@ const getNewsById = async (req, res) => {
   }
 };
 
+/**
+ * SSE endpoint for streaming translation updates.
+ */
+const streamTranslations = (req, res) => {
+  const language = req.query.language;
+  if (!language) {
+    return res.status(400).json({ success: false, message: "Language query parameter is required" });
+  }
+
+  res.writeHead(200, {
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache",
+    "Connection": "keep-alive",
+  });
+
+  // Keep connection alive with heartbeats
+  const heartbeat = setInterval(() => {
+    res.write(":\n\n");
+  }, 15000);
+
+  const onTranslated = (data) => {
+    if (data.language === language) {
+      res.write(`data: ${JSON.stringify(data)}\n\n`);
+    }
+  };
+
+  translationService.translationEvents.on("translated", onTranslated);
+
+  req.on("close", () => {
+    clearInterval(heartbeat);
+    translationService.translationEvents.removeListener("translated", onTranslated);
+    console.log(`[SSE] Client disconnected for language: ${language}`);
+  });
+
+  console.log(`[SSE] Client connected for language: ${language}`);
+};
+
 module.exports = {
   getNews,
   getNewsById,
+  streamTranslations,
 };

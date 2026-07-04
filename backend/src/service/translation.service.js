@@ -2,9 +2,12 @@ const LingvaProvider = require("./translation/lingvaProvider");
 const GoogleProvider = require("./translation/googleProvider");
 const MyMemoryProvider = require("./translation/mymemoryProvider");
 const { VALID_LANG_CODES, delay } = require("./translation/utils");
+const EventEmitter = require("events");
+const translationEvents = new EventEmitter();
 
 const TranslationCache = require("../models/translationCache.model");
 const News = require("../models/news.model");
+const { translationQueue } = require("./translationQueue");
 
 // Keep providers in fallback priority order
 const providers = [
@@ -130,7 +133,7 @@ function getOriginalLanguage(article) {
 /**
  * Translates article card (title and description) on-demand using cache
  */
-async function translateArticleCard(article, targetLang) {
+async function translateArticleCard(article, targetLang, priority = 1) {
   const origLang = getOriginalLanguage(article);
   if (targetLang === origLang) {
     return article;
@@ -156,41 +159,57 @@ async function translateArticleCard(article, targetLang) {
     console.error(`[Translation Cache] ❌ Error checking cache for ${cacheKey}:`, err.message);
   }
 
-  // Cache Miss -> Perform translation
-  const origTitle = article.originalTitle || article.title;
-  const origDesc = article.originalDescription || article.description || "";
-
-  const translated = await translateFields(origTitle, origDesc, targetLang, origLang);
-
-  // Save to Cache (upsert to handle any race conditions cleanly)
+  // Queue translation instead of direct calling
+  const jobKey = `card:${articleId}:${targetLang}`;
+  
   try {
-    await TranslationCache.updateOne(
-      { articleId, language: targetLang },
-      {
-        $set: {
-          title: translated.title,
-          description: translated.description,
-        },
-      },
-      { upsert: true }
-    );
-    console.log(`[Translation Cache] 💾 Saved: Article ${articleId} in ${targetLang}`);
-  } catch (err) {
-    console.error(`[Translation Cache] ❌ Error saving cache for ${cacheKey}:`, err.message);
-  }
+    const translated = await translationQueue.enqueue(jobKey, priority, async () => {
+      const origTitle = article.originalTitle || article.title;
+      const origDesc = article.originalDescription || article.description || "";
 
-  return {
-    ...article,
-    title: translated.title,
-    description: translated.description,
-    language: targetLang,
-  };
+      const trans = await translateFields(origTitle, origDesc, targetLang, origLang);
+
+      // Save to Cache (upsert to handle any race conditions cleanly)
+      await TranslationCache.updateOne(
+        { articleId, language: targetLang },
+        {
+          $set: {
+            title: trans.title,
+            description: trans.description,
+          },
+        },
+        { upsert: true }
+      );
+      console.log(`[Translation Cache] 💾 Saved: Article ${articleId} in ${targetLang}`);
+      
+      translationEvents.emit("translated", {
+        articleId,
+        language: targetLang,
+        title: trans.title,
+        description: trans.description,
+        type: "card"
+      });
+
+      return trans;
+    });
+
+    return {
+      ...article,
+      title: translated.title,
+      description: translated.description,
+      language: targetLang,
+    };
+  } catch (err) {
+    console.error(`[Translation Queue] ❌ Job failed for ${jobKey}:`, err.message);
+    // Fall back to original article on failure, never crash
+    return article;
+  }
 }
 
 /**
  * Translates full article details (title, description, content) on-demand using cache
  */
-async function translateArticleDetails(article, targetLang) {
+async function translateArticleDetails(article, targetLang, priority = 1) {
   const origLang = getOriginalLanguage(article);
   if (targetLang === origLang) {
     return article;
@@ -217,44 +236,67 @@ async function translateArticleDetails(article, targetLang) {
     console.error(`[Translation Cache] ❌ Error checking cache for ${cacheKey}:`, err.message);
   }
 
-  // Cache Miss -> Perform full translation
-  const origTitle = article.originalTitle || article.title;
-  const origDesc = article.originalDescription || article.description || "";
-  const origContent = article.originalContent || article.content || "";
-
-  const translated = await translateFullArticle(origTitle, origDesc, origContent, targetLang, origLang);
-
-  // Save to Cache (upsert to handle any race conditions cleanly)
+  // Queue translation instead of direct calling
+  const jobKey = `details:${articleId}:${targetLang}`;
+  
   try {
-    await TranslationCache.updateOne(
-      { articleId, language: targetLang },
-      {
-        $set: {
-          title: translated.title,
-          description: translated.description,
-          content: translated.content,
-        },
-      },
-      { upsert: true }
-    );
-    console.log(`[Translation Cache] 💾 Saved (Full): Article ${articleId} in ${targetLang}`);
-  } catch (err) {
-    console.error(`[Translation Cache] ❌ Error saving cache for ${cacheKey}:`, err.message);
-  }
+    const translated = await translationQueue.enqueue(jobKey, priority, async () => {
+      const origTitle = article.originalTitle || article.title;
+      const origDesc = article.originalDescription || article.description || "";
+      const origContent = article.originalContent || article.content || "";
 
-  return {
-    ...article,
-    title: translated.title,
-    description: translated.description,
-    content: translated.content,
-    language: targetLang,
-  };
+      const trans = await translateFullArticle(origTitle, origDesc, origContent, targetLang, origLang);
+
+      // Save to Cache (upsert to handle any race conditions cleanly)
+      await TranslationCache.updateOne(
+        { articleId, language: targetLang },
+        {
+          $set: {
+            title: trans.title,
+            description: trans.description,
+            content: trans.content,
+          },
+        },
+        { upsert: true }
+      );
+      console.log(`[Translation Cache] 💾 Saved (Full): Article ${articleId} in ${targetLang}`);
+      
+      translationEvents.emit("translated", {
+        articleId,
+        language: targetLang,
+        title: trans.title,
+        description: trans.description,
+        content: trans.content,
+        type: "details"
+      });
+
+      return trans;
+    });
+
+    return {
+      ...article,
+      title: translated.title,
+      description: translated.description,
+      content: translated.content,
+      language: targetLang,
+    };
+  } catch (err) {
+    console.error(`[Translation Queue] ❌ Job failed for ${jobKey}:`, err.message);
+    // Fall back to original article on failure, never crash
+    return article;
+  }
 }
 
 /**
  * Asynchronously prefetches and translates the next page of articles in the background.
  */
 function prefetchNextPage(filter, page, limit, language) {
+  const isEnabled = process.env.TRANSLATION_PREFETCH_ENABLED !== "false";
+  if (!isEnabled) {
+    console.log("[Translation Prefetch] ⏭️ Next page background prefetch is disabled via configuration");
+    return;
+  }
+
   setImmediate(async () => {
     try {
       const skip = page * limit; // next page skip
@@ -267,7 +309,8 @@ function prefetchNextPage(filter, page, limit, language) {
       if (nextArticles && nextArticles.length > 0) {
         console.log(`[Translation Prefetch] 🚀 Background translating page ${page + 1} (${nextArticles.length} articles) for language "${language}"`);
         for (const art of nextArticles) {
-          await translateArticleCard(art, language);
+          // Enqueue prefetch with priority 2
+          await translateArticleCard(art, language, 2);
           await delay(50); // Gentle pacing
         }
         console.log(`[Translation Prefetch] ✅ Page ${page + 1} prefetch complete`);
@@ -285,4 +328,6 @@ module.exports = {
   translateArticleCard,
   translateArticleDetails,
   prefetchNextPage,
+  translationEvents,
+  getOriginalLanguage,
 };

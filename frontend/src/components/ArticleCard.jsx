@@ -9,6 +9,33 @@ const ArticleCard = ({ article }) => {
   const { isBookmarked, addBookmark, removeBookmark } = useBookmarks();
   const { isAuthenticated } = useAuth();
 
+  if (article?.translationPending) {
+    return (
+      <article className="group relative flex flex-col bg-white border border-charcoal-100 rounded-lg overflow-hidden transition-all duration-300">
+        <div className="relative aspect-[16/10] w-full bg-charcoal-50 skeleton"></div>
+        <div className="flex-1 flex flex-col p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="h-3 w-1/4 skeleton"></div>
+            <div className="h-3 w-1/4 skeleton"></div>
+          </div>
+          <div className="space-y-2">
+            <div className="h-5 w-full skeleton"></div>
+            <div className="h-5 w-3/4 skeleton"></div>
+          </div>
+          <div className="space-y-2 flex-1">
+            <div className="h-4 w-full skeleton"></div>
+            <div className="h-4 w-5/6 skeleton"></div>
+            <div className="h-4 w-2/3 skeleton"></div>
+          </div>
+          <div className="pt-4 border-t border-charcoal-50 flex items-center justify-between">
+            <div className="h-4 w-1/3 skeleton"></div>
+            <div className="h-4 w-8 skeleton"></div>
+          </div>
+        </div>
+      </article>
+    );
+  }
+
   const id = article._id;
   const bookmarked = isBookmarked(id);
 

@@ -9,6 +9,7 @@ import { useBookmarks } from "../contexts/BookmarkContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigationState } from "../contexts/NavigationStateContext";
 import toast from "react-hot-toast";
+import { useTranslationStream } from "../hooks/useTranslationStream";
 
 const LANGUAGES = [
   { code: "en", name: "English" },
@@ -47,6 +48,26 @@ const Home = () => {
 
   const { isBookmarked, addBookmark, removeBookmark } = useBookmarks();
   const { isAuthenticated } = useAuth();
+
+  const handleTranslationUpdate = React.useCallback((data) => {
+    const updateArticle = (list) =>
+      list.map((art) =>
+        art._id === data.articleId
+          ? {
+              ...art,
+              title: data.title,
+              description: data.description,
+              translationPending: false,
+            }
+          : art
+      );
+
+    setNewsFeed((prev) => updateArticle(prev));
+    setBusinessNews((prev) => updateArticle(prev));
+    setTechNews((prev) => updateArticle(prev));
+  }, []);
+
+  useTranslationStream(language, handleTranslationUpdate);
 
   // Reset page when language changes
   useEffect(() => {

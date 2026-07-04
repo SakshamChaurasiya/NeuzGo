@@ -2,20 +2,19 @@ const express = require("express");
 const {
     getNews,
     getNewsById,
+    streamTranslations,
 } = require("../controllers/news.controller.js");
 const { syncNews } = require("../jobs/newsSync.job.js");
 
 const router = express.Router();
 
 /**
+ * GET /api/news/stream-translations
+ */
+router.get("/stream-translations", streamTranslations);
+
+/**
  * GET /api/news
- *
- * Query Parameters:
- * page=1
- * limit=10
- * category=general
- * country=in
- * language=en
  */
 router.get("/", getNews);
 
