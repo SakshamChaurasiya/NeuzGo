@@ -1,9 +1,10 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { FiBookmark, FiCalendar, FiUser } from "react-icons/fi";
+import { FiBookmark, FiCalendar, FiUser, FiShare2 } from "react-icons/fi";
 import { FaBookmark } from "react-icons/fa";
 import { useBookmarks } from "../contexts/BookmarkContext";
 import { useAuth } from "../contexts/AuthContext";
+import toast from "react-hot-toast";
 
 const ArticleCard = ({ article }) => {
   const { isBookmarked, addBookmark, removeBookmark } = useBookmarks();
@@ -51,6 +52,14 @@ const ArticleCard = ({ article }) => {
     } else {
       await addBookmark(id);
     }
+  };
+
+  const handleShareClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const articleUrl = `${window.location.origin}/article/${id}`;
+    navigator.clipboard.writeText(articleUrl);
+    toast.success("Article link copied!");
   };
 
   const formatDate = (dateStr) => {
@@ -111,17 +120,27 @@ const ArticleCard = ({ article }) => {
             <span className="truncate max-w-[120px]">{article.author || "Unknown"}</span>
           </div>
 
-          <button
-            onClick={handleBookmarkToggle}
-            className="p-1.5 rounded-full hover:bg-charcoal-50 text-charcoal-400 hover:text-charcoal-900 transition-colors"
-            aria-label={bookmarked ? "Remove bookmark" : "Add bookmark"}
-          >
-            {bookmarked ? (
-              <FaBookmark className="h-4 w-4 text-accent-amber animate-scale-up" />
-            ) : (
-              <FiBookmark className="h-4 w-4" />
-            )}
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={handleShareClick}
+              className="p-1.5 rounded-full hover:bg-charcoal-50 text-charcoal-400 hover:text-charcoal-900 transition-colors"
+              aria-label="Share article link"
+              title="Share article link"
+            >
+              <FiShare2 className="h-4 w-4" />
+            </button>
+            <button
+              onClick={handleBookmarkToggle}
+              className="p-1.5 rounded-full hover:bg-charcoal-50 text-charcoal-400 hover:text-charcoal-900 transition-colors"
+              aria-label={bookmarked ? "Remove bookmark" : "Add bookmark"}
+            >
+              {bookmarked ? (
+                <FaBookmark className="h-4 w-4 text-accent-amber animate-scale-up" />
+              ) : (
+                <FiBookmark className="h-4 w-4" />
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </article>
