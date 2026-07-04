@@ -60,7 +60,7 @@ const Profile = () => {
   return (
     <div className="max-w-2xl mx-auto py-12 px-4 space-y-10">
       {/* Profile Header */}
-      <div className="flex items-center gap-6">
+      <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-6">
         {/* Avatar */}
         <div className="h-20 w-20 rounded-full bg-charcoal-950 flex items-center justify-center shrink-0">
           <span className="font-serif text-3xl font-bold text-white uppercase">

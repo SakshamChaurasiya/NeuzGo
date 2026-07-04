@@ -175,8 +175,9 @@ const ArticleDetails = () => {
     const paragraphs = content.split("\n\n");
     return paragraphs.map((para, idx) => {
       const isLastParagraph = idx === paragraphs.length - 1;
-      if (isLastParagraph && charsPattern.test(para)) {
-        const cleanedPara = para.replace(charsPattern, "");
+      if (isLastParagraph) {
+        const hasSuffix = charsPattern.test(para);
+        const cleanedPara = hasSuffix ? para.replace(charsPattern, "") : para;
         return (
           <p key={idx}>
             {cleanedPara}
@@ -187,7 +188,7 @@ const ArticleDetails = () => {
                   href={article.articleUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-accent-blue hover:underline font-semibold text-xs"
+                  className="text-accent-blue hover:underline font-semibold text-xs ml-1"
                 >
                   {getReadMoreLabel(article.language || "en")}
                 </a>
@@ -378,7 +379,7 @@ const ArticleDetails = () => {
             {related.length === 0 ? (
               <p className="text-sm text-charcoal-400">No related articles found.</p>
             ) : (
-              <div className="flex flex-col gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-6">
                 {related.map((art) => (
                   <ArticleCard key={art._id} article={art} />
                 ))}

@@ -90,12 +90,12 @@ const Bookmarks = () => {
             return (
               <div
                 key={bookmark._id}
-                className={`py-6 flex gap-5 items-start group transition-opacity duration-200 ${isRemoving ? "opacity-40 pointer-events-none" : ""}`}
+                className={`py-6 flex flex-col sm:flex-row gap-5 items-start group transition-opacity duration-200 ${isRemoving ? "opacity-40 pointer-events-none" : ""}`}
               >
                 {/* Thumbnail */}
                 <Link
                   to={`/article/${articleId}`}
-                  className="shrink-0 overflow-hidden rounded w-24 h-20 sm:w-32 sm:h-24 bg-charcoal-50"
+                  className="shrink-0 overflow-hidden rounded w-full sm:w-32 h-44 sm:h-24 bg-charcoal-50"
                 >
                   <img
                     src={article.imageUrl || "https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=400&q=70"}

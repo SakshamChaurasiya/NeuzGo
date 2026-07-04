@@ -58,7 +58,7 @@ const HeroSlider = ({ articles = [] }) => {
 
   return (
     <div
-      className="relative w-full overflow-hidden rounded-xl bg-charcoal-950 min-h-[420px] lg:min-h-[520px] group"
+      className="relative w-full overflow-hidden rounded-xl bg-charcoal-950 min-h-[300px] sm:min-h-[380px] md:min-h-[440px] lg:min-h-[520px] group"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
@@ -83,21 +83,21 @@ const HeroSlider = ({ articles = [] }) => {
       ))}
 
       {/* Content — always shows active article */}
-      <div className="relative flex flex-col justify-end h-full min-h-[420px] lg:min-h-[520px] p-6 sm:p-10 space-y-4">
+      <div className="relative flex flex-col justify-end h-full min-h-[300px] sm:min-h-[380px] md:min-h-[440px] lg:min-h-[520px] p-5 sm:p-10 space-y-3 sm:space-y-4">
         {/* Category badge */}
         <span className="bg-gray-100/40 text-gray-600 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-sm w-fit"> 
-  {article.category} 
-</span>
+          {article.category} 
+        </span>
 
         {/* Title */}
         <Link to={`/article/${article._id}`}>
-          <h2 className="font-serif text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight hover:text-charcoal-200 transition-colors max-w-3xl">
+          <h2 className="font-serif text-xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight hover:text-charcoal-200 transition-colors max-w-3xl">
             {article.title}
           </h2>
         </Link>
 
         {/* Description */}
-        <p className="text-charcoal-300 text-sm sm:text-base line-clamp-2 max-w-2xl font-light">
+        <p className="text-charcoal-300 text-xs sm:text-sm md:text-base line-clamp-2 max-w-2xl font-light">
           {article.description}
         </p>
 
@@ -110,7 +110,7 @@ const HeroSlider = ({ articles = [] }) => {
           </div>
           <button
             onClick={(e) => handleBookmark(e, article._id)}
-            className="p-1.5 rounded-full hover:bg-white/10 text-white hover:text-accent-amber transition-colors"
+            className="p-2 rounded-full hover:bg-white/10 text-white hover:text-accent-amber transition-colors"
           >
             {isBookmarked(article._id) ? (
               <FaBookmark className="h-4.5 w-4.5 text-accent-amber" />
@@ -142,19 +142,19 @@ const HeroSlider = ({ articles = [] }) => {
         </div>
       </div>
 
-      {/* Prev / Next arrow buttons — show on hover */}
+      {/* Prev / Next arrow buttons — show on hover on large screens */}
       {slides.length > 1 && (
         <>
           <button
             onClick={prev}
-            className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-black/40 hover:bg-black/60 text-white rounded-full backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100 duration-200"
+            className="hidden sm:block absolute left-4 top-1/2 -translate-y-1/2 p-2.5 bg-black/40 hover:bg-black/60 text-white rounded-full backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100 duration-200"
             aria-label="Previous slide"
           >
             <FiChevronLeft className="h-5 w-5" />
           </button>
           <button
             onClick={next}
-            className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-black/40 hover:bg-black/60 text-white rounded-full backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100 duration-200"
+            className="hidden sm:block absolute right-4 top-1/2 -translate-y-1/2 p-2.5 bg-black/40 hover:bg-black/60 text-white rounded-full backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100 duration-200"
             aria-label="Next slide"
           >
             <FiChevronRight className="h-5 w-5" />

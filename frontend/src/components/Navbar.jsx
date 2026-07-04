@@ -42,10 +42,12 @@ const Navbar = () => {
           {/* Mobile Menu Toggle */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 -ml-2 text-charcoal-600 hover:text-charcoal-900 md:hidden transition-colors"
+            className="p-3 -ml-3 text-charcoal-600 hover:text-charcoal-900 md:hidden transition-colors"
             aria-label="Toggle menu"
           >
-            {mobileMenuOpen ? <FiX className="h-6 w-6" /> : <FiMenu className="h-6 w-6" />}
+            <div className={`transition-transform duration-300 ${mobileMenuOpen ? 'rotate-90' : 'rotate-0'}`}>
+              {mobileMenuOpen ? <FiX className="h-6 w-6" /> : <FiMenu className="h-6 w-6" />}
+            </div>
           </button>
 
           {/* Logo */}
@@ -101,7 +103,7 @@ const Navbar = () => {
                     placeholder="Search articles..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-40 sm:w-60 px-3 py-1.5 text-sm bg-charcoal-50 border border-charcoal-200 rounded-md focus:outline-none focus:border-charcoal-800 transition-all"
+                    className="w-40 sm:w-60 px-3 py-2 text-sm bg-charcoal-50 border border-charcoal-200 rounded-md focus:outline-none focus:border-charcoal-800 transition-all"
                     autoFocus
                     onBlur={() => {
                       if (!searchQuery) setSearchOpen(false);
@@ -111,7 +113,7 @@ const Navbar = () => {
               ) : (
                 <button
                   onClick={() => setSearchOpen(true)}
-                  className="p-2 text-charcoal-600 hover:text-charcoal-900 transition-colors"
+                  className="p-3 text-charcoal-600 hover:text-charcoal-900 transition-colors"
                   aria-label="Search"
                 >
                   <FiSearch className="h-5 w-5" />
@@ -122,12 +124,12 @@ const Navbar = () => {
             {/* Bookmarks */}
             <Link
               to="/bookmarks"
-              className="relative p-2 text-charcoal-600 hover:text-charcoal-900 transition-colors"
+              className="relative p-3 text-charcoal-600 hover:text-charcoal-900 transition-colors"
               aria-label="Bookmarks"
             >
               <FiBookmark className="h-5 w-5" />
               {isAuthenticated && bookmarks.length > 0 && (
-                <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-accent-amber text-[9px] font-bold text-white">
+                <span className="absolute top-2 right-2 flex h-4 w-4 items-center justify-center rounded-full bg-accent-amber text-[9px] font-bold text-white">
                   {bookmarks.length}
                 </span>
               )}
@@ -135,17 +137,17 @@ const Navbar = () => {
 
             {/* User Access */}
             {isAuthenticated ? (
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
                 <Link
                   to="/profile"
-                  className="hidden sm:flex items-center space-x-1.5 text-sm font-medium text-charcoal-700 hover:text-charcoal-900 transition-colors"
+                  className="hidden sm:flex items-center space-x-1.5 px-2 py-1.5 text-sm font-medium text-charcoal-700 hover:text-charcoal-900 transition-colors"
                 >
                   <FiUser className="h-4.5 w-4.5" />
                   <span>{user?.username}</span>
                 </Link>
                 <button
                   onClick={logout}
-                  className="p-2 text-charcoal-600 hover:text-accent-amber transition-colors"
+                  className="p-3 text-charcoal-600 hover:text-accent-amber transition-colors"
                   aria-label="Log out"
                 >
                   <FiLogOut className="h-5 w-5" />
@@ -154,7 +156,7 @@ const Navbar = () => {
             ) : (
               <Link
                 to="/login"
-                className="px-4 py-2 text-xs font-semibold tracking-wider text-white bg-charcoal-900 hover:bg-charcoal-850 rounded transition-colors uppercase"
+                className="px-4 py-2.5 text-xs font-semibold tracking-wider text-white bg-charcoal-900 hover:bg-charcoal-850 rounded transition-colors uppercase"
               >
                 Sign In
               </Link>
@@ -164,15 +166,19 @@ const Navbar = () => {
       </div>
 
       {/* Mobile Menu Drawer */}
-      {mobileMenuOpen && (
-        <div className="md:hidden border-t border-charcoal-100 bg-white px-4 pt-2 pb-6 space-y-1 shadow-inner animate-fade-in">
+      <div
+        className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out border-t border-charcoal-100 bg-white shadow-inner ${
+          mobileMenuOpen ? "max-h-[450px] opacity-100 py-3" : "max-h-0 opacity-0 py-0 pointer-events-none"
+        }`}
+      >
+        <div className="px-4 space-y-1 pb-4">
           {CATEGORIES.map((cat) => (
             <NavLink
               key={cat.id}
               to={`/category/${cat.id}`}
               onClick={() => setMobileMenuOpen(false)}
               className={({ isActive }) =>
-                `block px-3 py-2 text-base font-medium rounded ${
+                `block px-3 py-2.5 text-base font-medium rounded transition-colors ${
                   isActive ? "bg-charcoal-50 text-charcoal-950" : "text-charcoal-600 hover:bg-charcoal-50/50 hover:text-charcoal-900"
                 }`
               }
@@ -184,7 +190,7 @@ const Navbar = () => {
             to="/horoscope"
             onClick={() => setMobileMenuOpen(false)}
             className={({ isActive }) =>
-              `block px-3 py-2 text-base font-medium rounded ${
+              `block px-3 py-2.5 text-base font-medium rounded transition-colors ${
                 isActive ? "bg-charcoal-50 text-charcoal-950" : "text-charcoal-600 hover:bg-charcoal-50/50 hover:text-charcoal-900"
               }`
             }
@@ -196,7 +202,7 @@ const Navbar = () => {
               <Link
                 to="/profile"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center space-x-2 px-3 py-2 text-base font-medium text-charcoal-700 rounded hover:bg-charcoal-50"
+                className="flex items-center space-x-2 px-3 py-2.5 text-base font-medium text-charcoal-700 rounded hover:bg-charcoal-50"
               >
                 <FiUser className="h-5 w-5" />
                 <span>My Profile ({user?.username})</span>
@@ -206,7 +212,7 @@ const Navbar = () => {
                   logout();
                   setMobileMenuOpen(false);
                 }}
-                className="flex w-full items-center space-x-2 px-3 py-2 text-base font-medium text-charcoal-700 rounded hover:bg-charcoal-50 text-left"
+                className="flex w-full items-center space-x-2 px-3 py-2.5 text-base font-medium text-charcoal-700 rounded hover:bg-charcoal-50 text-left"
               >
                 <FiLogOut className="h-5 w-5" />
                 <span>Log Out</span>
@@ -214,7 +220,7 @@ const Navbar = () => {
             </div>
           )}
         </div>
-      )}
+      </div>
     </header>
   );
 };

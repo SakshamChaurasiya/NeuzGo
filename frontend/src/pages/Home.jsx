@@ -283,13 +283,13 @@ const Home = () => {
             </div>
 
             {/* Trending Sidebar */}
-            <div className="border border-charcoal-100 rounded-xl p-6 flex flex-col">
+            <div className="border border-charcoal-100 rounded-xl p-6 flex flex-col lg:col-span-1">
               <h3 className="font-serif text-xl font-extrabold text-charcoal-900 border-b border-charcoal-100 pb-3 mb-4">
                 Trending Headlines
               </h3>
-              <div className="flex-1 divide-y divide-charcoal-100">
+              <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-x-6 gap-y-1 divide-y sm:divide-y-0 lg:divide-y divide-charcoal-100">
                 {trendingArticles.map((art, idx) => (
-                  <div key={art._id} className="py-3.5 first:pt-0 last:pb-0">
+                  <div key={art._id} className="py-3.5 first:pt-0 last:pb-0 sm:first:pt-3.5 sm:py-2 lg:first:pt-0 lg:py-3.5 border-b last:border-b-0 sm:border-b-0 lg:border-b last:pb-0 border-charcoal-100">
                     <span className="font-serif text-3xl font-black text-charcoal-200 block leading-none mb-1">
                       0{idx + 1}
                     </span>
@@ -336,13 +336,13 @@ const Home = () => {
             </Link>
           </div>
           {loadingSections ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {[1, 2, 3].map((n) => (
                 <div key={n} className="h-80 skeleton w-full"></div>
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {businessNews.map((art) => (
                 <ArticleCard key={art._id} article={art} />
               ))}
@@ -364,13 +364,13 @@ const Home = () => {
             </Link>
           </div>
           {loadingSections ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {[1, 2, 3].map((n) => (
                 <div key={n} className="h-80 skeleton w-full"></div>
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {techNews.map((art) => (
                 <ArticleCard key={art._id} article={art} />
               ))}
@@ -388,7 +388,7 @@ const Home = () => {
         </div>
 
         {loadingFeed ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {[1, 2, 3, 4, 5, 6].map((n) => (
               <div key={n} className="h-80 skeleton w-full"></div>
             ))}
@@ -400,7 +400,7 @@ const Home = () => {
                 <p className="text-charcoal-500">No additional articles available.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                 {remainingArticles.map((art) => (
                   <ArticleCard key={art._id} article={art} />
                 ))}
