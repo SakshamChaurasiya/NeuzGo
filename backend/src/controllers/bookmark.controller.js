@@ -10,9 +10,20 @@ const getBookmarks = async (req, res) => {
             .populate("newsId")
             .sort({ createdAt: -1 });
 
+        // Filter out orphaned bookmarks (where the news article was deleted)
+        const validBookmarks = bookmarks.filter(b => b.newsId !== null);
+        const orphanIds = bookmarks.filter(b => b.newsId === null).map(b => b._id);
+
+        // Delete orphaned bookmarks in the database asynchronously if any exist
+        if (orphanIds.length > 0) {
+            Bookmark.deleteMany({ _id: { $in: orphanIds } }).catch(err => {
+                console.error("Failed to delete orphaned bookmarks:", err);
+            });
+        }
+
         return res.status(200).json({
             success: true,
-            data: bookmarks,
+            data: validBookmarks,
         });
     } catch (error) {
         console.error("Get bookmarks error:", error);

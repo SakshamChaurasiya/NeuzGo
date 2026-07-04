@@ -1,4 +1,5 @@
 const News = require("../models/news.model");
+const Bookmark = require("../models/bookmark.model");
 const { syncFromAllProviders } = require("../service/providerManager.service");
 
 async function syncNews() {
@@ -108,9 +109,13 @@ async function syncNews() {
     }
 
     // ── 3. Cleanup ─────────────────────────────────────────────────────────────
+    // Get all bookmarked article IDs to exclude them from deletion
+    const bookmarkedIds = await Bookmark.distinct("newsId");
+
     // General: 30-day retention (kept fresh by this cron)
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const generalCleanup = await News.deleteMany({
+      _id: { $nin: bookmarkedIds },
       category: "general",
       publishedAt: { $lt: thirtyDaysAgo },
     });
@@ -119,6 +124,7 @@ async function syncNews() {
     // Keeps DB size manageable without leaving category pages cold indefinitely.
     const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
     const categoryCleanup = await News.deleteMany({
+      _id: { $nin: bookmarkedIds },
       category: { $ne: "general" },
       publishedAt: { $lt: fortyEightHoursAgo },
     });
